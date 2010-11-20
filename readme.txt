@@ -53,3 +53,7 @@ Added support for YouTube URLs
 
 = 0.1 =
 Initial release
+
+== Known Issues ==
+
+* Vimeo thumbnails are sometimes not returned, I believe this is being caused by an API rate limit
