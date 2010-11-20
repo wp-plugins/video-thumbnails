@@ -4,7 +4,7 @@ Donate link: http://example.com/
 Tags: Video, YouTube, Vimeo, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
@@ -44,16 +44,19 @@ Coming Soon
 
 == Changelog ==
 
+= 0.1.3 =
+* Fixed an issue where no URL was returned when Vimeo's rate limit had been exceeded. The default image URL is now returned, but a future version of the plugin will store thumbnails locally for a better fix.
+
 = 0.1.2 =
-Fixed a possible issue with how the default image URL is created
+* Fixed a possible issue with how the default image URL is created
 
 = 0.1.1 =
-Fixed an issue with the plugin directory's name that caused the default URL to be broken
-Added support for YouTube URLs
+* Fixed an issue with the plugin directory's name that caused the default URL to be broken
+* Added support for YouTube URLs
 
 = 0.1 =
-Initial release
+* Initial release
 
 == Known Issues ==
 
-* Vimeo thumbnails are sometimes not returned, I believe this is being caused by an API rate limit
+* The Vimeo API is rate limited, so the default image will be displayed when the limit has been exceeded. I'm planning to add local copies of files in a future release to solve this problem.

@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: A plugin designed to fetch video thumbnails. Use <code>&lt;?php video_thumbnail(); ?&gt;</code> in a loop to return a URL for the thumbnail of the first video in a post. Currently works with YouTube and Vimeo, and with the JR_embed plugin.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.1.2
+Version: 0.1.3
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -25,7 +25,7 @@ License: GPL2
 */
 
 // Get Vimeo Thumbnail
-function getVimeoInfo($id, $info = 'thumbnail_medium') {
+function getVimeoInfo($id, $info = 'thumbnail_large') {
     if (!function_exists('curl_init')) die('CURL is not installed!');
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "http://vimeo.com/api/v2/video/$id.php");
@@ -70,17 +70,24 @@ function video_thumbnail() {
 		if(!isset($matches[1])) {
 	    	preg_match('#\[vimeo id=([A-Za-z0-9\-_]+)]#s', $markup, $matches);
 	    };
-	};
 	
-	// Now if we've found a Vimeo ID, let's echo the thumbnail
-	if(isset($matches[1])) {
-		echo getVimeoInfo($matches[1], $info = 'thumbnail_medium');
-	}
+		// Now if we've found a Vimeo ID, let's echo the thumbnail
+		if(isset($matches[1])) {
+			$vimeo_thumbnail = getVimeoInfo($matches[1], $info = 'thumbnail_large');
+			if(isset($vimeo_thumbnail)) {
+				echo $vimeo_thumbnail;
+			} else {
+				// If we can't find the Vimeo thumbnail, display default
+				echo plugins_url() . "/video-thumbnails/default.jpg";
+			}
+		}
 	
-	// If we still don't find anything, display a default thumbnail
+	// If nothing has been found, show the default	
 	else {
-		echo plugins_url() . "/video-thumbnails/default.jpg";
+			echo plugins_url() . "/video-thumbnails/default.jpg";
+		}
 	}
+
 };
 
 ?>
