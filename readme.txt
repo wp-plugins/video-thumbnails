@@ -1,16 +1,16 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
-Donate link: http://example.com/
+Donate link: http://sutherlandboswell.com
 Tags: Video, YouTube, Vimeo, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 0.1.3
+Stable tag: 0.2
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
 == Description ==
 
-Video Thumbnails makes it simple to display video thumbnails in your templates. Simply use `<?php video_thumbnail(); ?>` in a loop to grab the URL of a thumbnail for a video embedded in your post.
+Video Thumbnails makes it simple to display video thumbnails in your templates. Simply use `<?php video_thumbnail(); ?>` in a loop to find and echo the URL of the first video embedded in a post, or use `<?php $video_thumbnail = get_video_thumbnail(); ?>` if you want to return the URL for use as a variable.
 
 Video Thumbnails currently supports:
 
@@ -18,7 +18,9 @@ Video Thumbnails currently supports:
 *   Vimeo
 *   JR Embed (uses `[youtube id=VIDEO_ID]` to embed videos, I've modified mine to also allow `[vimeo id=VIDEO_ID]`)
 
-If no thumbnail is found, a default thumbnail is returned, which can be changed by replacing the `default.jpg` file found in your `/plugins/video-thumbnails/` directory.
+When using `video_thumbnail()` and no thumbnail is found, a default thumbnail is echoed, which can be changed by replacing the `default.jpg` file found in your `/plugins/video-thumbnails/` directory.
+
+For more advanced users, the `get_video_thumbnail()` function will return null when no thumbnail is found so a conditional statement can be used to detect if a thumbnail is present and decide what to echo. Here's an example of how to only echo a thumbnail when one is found: `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>`
 
 This is just a start, so don't hesitate to share suggestions and let me know if you find any problems.
 
@@ -26,7 +28,7 @@ This is just a start, so don't hesitate to share suggestions and let me know if 
 
 1. Upload the `/video-thumbnails/` directory to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php video_thumbnail(); ?>` in a loop inside your template. Because this is only a URL, you should set it as an image tag's source. Ex: `<img src="<?php video_thumbnail(); ?>" />`
+1. Use `<?php video_thumbnail(); ?>` in a loop inside your template to echo the thumbnail URL. Because this is only a URL, you should set it as an image tag's source. For example, `<img src="<?php video_thumbnail(); ?>" />`. If you'd like to return the URL for use in your PHP, use `get_video_thumbnail()`. For example, `<?php $video_thumbnail = get_video_thumbnail(); ?>`.
 
 == Frequently Asked Questions ==
 
@@ -34,15 +36,18 @@ This is just a start, so don't hesitate to share suggestions and let me know if 
 
 If the service allows a way to retrieve thumbnails, I'll do my best to add it.
 
-= I don't want a thumbnail for posts without a video, what should I do? =
+= I only want a thumbnail when one is found, how would I do this? =
 
-I have several additions in mind, and better handling of this type of situation is one of them.
+In version 0.2 `get_video_thumbnail()` was added which returns null when no thumbnail is found. This means you can use something like `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>` to only display a thumbnail when one exists.
 
 == Screenshots ==
 
 Coming Soon
 
 == Changelog ==
+
+= 0.2 =
+* Added `get_video_thumbnail()` to return the URL without echoing or return null if no thumbnail is found, making it possible to only display a thumbnail if one is found.
 
 = 0.1.3 =
 * Fixed an issue where no URL was returned when Vimeo's rate limit had been exceeded. The default image URL is now returned, but a future version of the plugin will store thumbnails locally for a better fix.
@@ -60,3 +65,4 @@ Coming Soon
 == Known Issues ==
 
 * The Vimeo API is rate limited, so the default image will be displayed when the limit has been exceeded. I'm planning to add local copies of files in a future release to solve this problem.
+* While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined, so if you have any suggestions let me know.
