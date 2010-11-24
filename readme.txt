@@ -4,7 +4,7 @@ Donate link: http://sutherlandboswell.com
 Tags: Video, YouTube, Vimeo, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 0.2
+Stable tag: 0.2.1
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
@@ -45,6 +45,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 Coming Soon
 
 == Changelog ==
+
+= 0.2.1 =
+* Added support for Vimeo players embedded using an iframe
 
 = 0.2 =
 * Added `get_video_thumbnail()` to return the URL without echoing or return null if no thumbnail is found, making it possible to only display a thumbnail if one is found.
