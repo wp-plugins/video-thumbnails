@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: A plugin designed to fetch video thumbnails. Use <code>&lt;?php video_thumbnail(); ?&gt;</code> in a loop to return a URL for the thumbnail of the first video in a post. Currently works with YouTube and Vimeo, and with the JR_embed plugin.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.2.1
+Version: 0.2.2
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -74,6 +74,11 @@ function get_video_thumbnail() {
 		// If we still haven't found anything, check for Vimeo embedded with JR_embed
 		if(!isset($matches[1])) {
 	    	preg_match('#\[vimeo id=([A-Za-z0-9\-_]+)]#s', $markup, $matches);
+	    }
+
+		// If we still haven't found anything, check for Vimeo shortcode
+		if(!isset($matches[1])) {
+	    	preg_match('#\[vimeo clip_id="([A-Za-z0-9\-_]+)"[^>]*]#s', $markup, $matches);
 	    }
 	
 		// Now if we've found a Vimeo ID, let's return the thumbnail
