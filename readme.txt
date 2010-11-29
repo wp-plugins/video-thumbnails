@@ -73,3 +73,12 @@ Coming Soon
 
 * The Vimeo API is rate limited, so the default image will be displayed when the limit has been exceeded. I'm planning to add local copies of files in a future release to solve this problem.
 * While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined, so if you have any suggestions let me know.
+
+== Roadmap ==
+
+This plugin is still very young, and has a future planned as the ultimate plugin for video thumbnails. Here's some of the planned additions:
+
+* Blip.tv support
+* Local thumbnail storage
+* More services
+* More shortcode plugins
