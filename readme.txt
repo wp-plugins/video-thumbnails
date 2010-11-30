@@ -4,7 +4,7 @@ Donate link: http://sutherlandboswell.com
 Tags: Video, YouTube, Vimeo, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 0.2.3
+Stable tag: 0.3
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
@@ -14,10 +14,11 @@ Video Thumbnails makes it simple to display video thumbnails in your templates. 
 
 Video Thumbnails currently supports:
 
-*   YouTube
-*   Vimeo
-*   JR Embed (this plugin seems to have disappeared)
-*	[Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
+* YouTube
+* Vimeo
+* Blip.tv
+* JR Embed (this plugin seems to have disappeared)
+* [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 
 When using `video_thumbnail()` and no thumbnail is found, a default thumbnail is echoed, which can be changed by replacing the `default.jpg` file found in your `/plugins/video-thumbnails/` directory.
 
@@ -46,6 +47,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 Coming Soon
 
 == Changelog ==
+
+= 0.3 =
+* Added basic support for Blip.tv auto embedded using URLs in this format: http://blip.tv/file/12345
 
 = 0.2.3 =
 * Added support for any Vimeo URL
@@ -81,7 +85,7 @@ Coming Soon
 
 This plugin is still very young, and has a future planned as the ultimate plugin for video thumbnails. Here's some of the planned additions:
 
-* Blip.tv support
+* More comprehensive Blip.tv support
 * Local thumbnail storage
 * More services
 * More shortcode plugins

@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: A plugin designed to fetch video thumbnails. Use <code>&lt;?php video_thumbnail(); ?&gt;</code> in a loop to return a URL for the thumbnail of the first video in a post. Currently works with YouTube and Vimeo, and with the JR_embed plugin.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.2.3
+Version: 0.3
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -37,6 +37,16 @@ function getVimeoInfo($id, $info = 'thumbnail_large') {
     curl_close($ch);
     return $output;
 };
+
+// Blip.tv Functions
+function getBliptvInfo($id) {
+	$xml = simplexml_load_file("http://blip.tv/file/$id?skin=rss");
+	$result = $xml->xpath("/rss/channel/item/media:thumbnail/@url");
+	foreach($result as $element) {
+	   $thumbnail = $element["url"];
+	}
+	return $thumbnail;
+}
 
 // The Main Event
 function get_video_thumbnail() {
@@ -97,9 +107,15 @@ function get_video_thumbnail() {
 			}
 		}
 	
-		// If nothing has been found, show the default	
+		// If nothing has been found, look for Blip.tv
 		else {
-			return null;
+			preg_match('#http://blip.tv/file/([0-9]+)#s', $markup, $matches);
+			if(isset($matches[1])) {
+				return getBliptvInfo($matches[1]);
+			}
+			else {
+				return null;
+			}
 		}
 	}
 
