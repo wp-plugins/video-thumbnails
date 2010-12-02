@@ -1,10 +1,10 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
 Donate link: http://sutherlandboswell.com
-Tags: Video, YouTube, Vimeo, Thumbnails
+Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.1
-Stable tag: 0.3
+Stable tag: 0.5
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
@@ -24,8 +24,6 @@ When using `video_thumbnail()` and no thumbnail is found, a default thumbnail is
 
 For more advanced users, the `get_video_thumbnail()` function will return null when no thumbnail is found so a conditional statement can be used to detect if a thumbnail is present and decide what to echo. Here's an example of how to only echo a thumbnail when one is found: `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>`
 
-This is just a start, so don't hesitate to share suggestions and let me know if you find any problems.
-
 == Installation ==
 
 1. Upload the `/video-thumbnails/` directory to the `/wp-content/plugins/` directory
@@ -34,7 +32,11 @@ This is just a start, so don't hesitate to share suggestions and let me know if 
 
 == Frequently Asked Questions ==
 
-= My video service isn't included, can you add it? =
+= Why doesn't the thumbnail show up in the meta box on the Edit Post page after I save it? =
+
+This is probably happening because `video_thumbnail()` or `get_video_thumbnail()` has not be used in a loop for that post yet. Try loading a page that calls for the thumbnail then checking the Edit Post page again. This will be fixed in a future version.
+
+= My video service/embedding plugin isn't included, can you add it? =
 
 If the service allows a way to retrieve thumbnails, I'll do my best to add it.
 
@@ -44,9 +46,13 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 
 == Screenshots ==
 
-Coming Soon
+1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 0.5 =
+* Thumbnail URLs are now stored in a custom field with each post, meaning the plugin only has to interact with outside APIs once per post.
+* Added a "Video Thumbnail" meta box to the edit screen for each post, which can be manually set or will be set automatically once `video_thumbnail()` or `get_video_thumbnail()` is called in a loop for that post.
 
 = 0.3 =
 * Added basic support for Blip.tv auto embedded using URLs in this format: http://blip.tv/file/12345
@@ -76,16 +82,21 @@ Coming Soon
 = 0.1 =
 * Initial release
 
+== Upgrade Notice ==
+
+= 0.5 =
+This version adds the thumbnail URL to the post's meta data, meaning any outside APIs only have to be queried once per post. Vimeo's rate limit was easily exceeded, so this should fix that problem.
+
 == Known Issues ==
 
-* The Vimeo API is rate limited, so the default image will be displayed when the limit has been exceeded. I'm planning to add local copies of files in a future release to solve this problem.
-* While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined, so if you have any suggestions let me know.
+* Thumbnail URLs are not found and stored until `video_thumbnail()` or `get_video_thumbnail()` is called in a loop for that post. Future versions will handle this at the time of publishing.
+* While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined for less experienced users, so if you have any suggestions let me know.
 
 == Roadmap ==
 
 This plugin is still very young, and has a future planned as the ultimate plugin for video thumbnails. Here's some of the planned additions:
 
 * More comprehensive Blip.tv support
-* Local thumbnail storage
+* Local thumbnail caching
 * More services
-* More shortcode plugins
+* Compatibility with more plugins
