@@ -4,7 +4,7 @@ Donate link: http://sutherlandboswell.com
 Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.2
-Stable tag: 0.5
+Stable tag: 0.5.1
 
 Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
 
@@ -49,6 +49,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 0.5.1 =
+* Added a test to make sure the YouTube thumbnail actually exists. This prevents you from getting that ugly default thumbnail from YouTube.
 
 = 0.5 =
 * Thumbnail URLs are now stored in a custom field with each post, meaning the plugin only has to interact with outside APIs once per post.
