@@ -2,10 +2,10 @@
 /*
 Plugin Name: Video Thumbnails
 Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
-Description: A plugin designed to fetch video thumbnails. Add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to return a thumbnail, or check the FAQ section for more advanced uses. Currently works with YouTube, Vimeo, and Blip.tv, with other services coming soon.
+Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, and Blip.tv, along with several embedding plugins.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.5.2
+Version: 0.5.3
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -121,6 +121,9 @@ function get_video_thumbnail() {
 			// If we still haven't found anything, check for Vimeo shortcode
 			if(!isset($matches[1])) {
 		    	preg_match('#\[vimeo clip_id="([A-Za-z0-9\-_]+)"[^>]*]#s', $markup, $matches);
+		    }
+			if(!isset($matches[1])) {
+		    	preg_match('#\[vimeo video_id="([A-Za-z0-9\-_]+)"[^>]*]#s', $markup, $matches);
 		    }
 		
 			// Now if we've found a Vimeo ID, let's set the thumbnail URL

@@ -1,12 +1,12 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
-Donate link: http://sutherlandboswell.com
+Donate link: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.2
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 
-Video Thumbnails is a simple plugin that makes it easier to display video thumbnails in your template.
+Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
 == Description ==
 
@@ -50,6 +50,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 0.5.3 =
+* Better support for Vimeo Shortcode (thanks to Darren for the tip)
 
 = 0.5.2 =
 * Added support for [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
