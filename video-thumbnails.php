@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, and Blip.tv, along with several embedding plugins.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.5.4
+Version: 0.5.5
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -197,6 +197,14 @@ function save_details(){
 	if(isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]=='') {
 		delete_post_meta($post->ID, "_video_thumbnail");
 	}
+}
+
+// Find video thumbnail when saving a post
+
+add_action('save_post', 'save_video_thumbnail');
+
+function save_video_thumbnail($post_ID){
+  get_video_thumbnail($post_ID);
 }
 
 ?>

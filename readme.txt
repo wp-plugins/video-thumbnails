@@ -3,8 +3,8 @@ Contributors: sutherlandboswell
 Donate link: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
 Requires at least: 3.0
-Tested up to: 3.0.2
-Stable tag: 0.5.4
+Tested up to: 3.0.3
+Stable tag: 0.5.5
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
@@ -33,10 +33,6 @@ For more advanced users, the `get_video_thumbnail()` function will return null w
 
 == Frequently Asked Questions ==
 
-= Why doesn't the thumbnail show up in the meta box on the Edit Post page after I save it? =
-
-This is probably happening because `video_thumbnail()` or `get_video_thumbnail()` has not be used in a loop for that post yet. Try loading a page that calls for the thumbnail then checking the Edit Post page again. This will be fixed soon.
-
 = Can I use the functions outside of a loop? =
 
 Yes, but you must pass the post ID to the function as a parameter. For example: `<?php $id = 25; $thumbnail = get_video_thumbnail($id); if($thumbnail!=null) echo $thumbnail; ?>`
@@ -54,6 +50,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 0.5.5 =
+* Video thumbnails are now found at the time the post is saved
 
 = 0.5.4 =
 * Video thumbnails can be retrieved for a specific post ID by passing a parameter to the `video_thumbnail()` or `get_video_thumbnail()` function. For example: `<?php $id = 25; $thumbnail = get_video_thumbnail($id); if($thumbnail!=null) echo $thumbnail; ?>`
@@ -106,7 +105,6 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
-* Thumbnail URLs are not found and stored until `video_thumbnail()` or `get_video_thumbnail()` is called in a loop for that post. Future versions will handle this at the time of publishing.
 * While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined for less experienced users, so if you have any suggestions let me know.
 
 == Roadmap ==
