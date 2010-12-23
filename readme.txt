@@ -4,7 +4,7 @@ Donate link: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.2
-Stable tag: 0.5.3
+Stable tag: 0.5.4
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
@@ -35,7 +35,11 @@ For more advanced users, the `get_video_thumbnail()` function will return null w
 
 = Why doesn't the thumbnail show up in the meta box on the Edit Post page after I save it? =
 
-This is probably happening because `video_thumbnail()` or `get_video_thumbnail()` has not be used in a loop for that post yet. Try loading a page that calls for the thumbnail then checking the Edit Post page again. This will be fixed in a future version.
+This is probably happening because `video_thumbnail()` or `get_video_thumbnail()` has not be used in a loop for that post yet. Try loading a page that calls for the thumbnail then checking the Edit Post page again. This will be fixed soon.
+
+= Can I use the functions outside of a loop? =
+
+Yes, but you must pass the post ID to the function as a parameter. For example: `<?php $id = 25; $thumbnail = get_video_thumbnail($id); if($thumbnail!=null) echo $thumbnail; ?>`
 
 = My video service/embedding plugin isn't included, can you add it? =
 
@@ -50,6 +54,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 0.5.4 =
+* Video thumbnails can be retrieved for a specific post ID by passing a parameter to the `video_thumbnail()` or `get_video_thumbnail()` function. For example: `<?php $id = 25; $thumbnail = get_video_thumbnail($id); if($thumbnail!=null) echo $thumbnail; ?>`
 
 = 0.5.3 =
 * Better support for Vimeo Shortcode (thanks to Darren for the tip)
@@ -106,7 +113,8 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 This plugin is still very young, and has a future planned as the ultimate plugin for video thumbnails. Here's some of the planned additions:
 
+* An option to save thumbnails as post attachments and as the featured image, giving the plugin out-of-the-box compatibility with themes that use the Featured Image functionality of WordPress (I'd like some feedback on this idea)
 * More comprehensive Blip.tv support
-* Local thumbnail caching
 * More services
-* Compatibility with more plugins
+* Broader plugin compatibility
+* Option to display video thumbnails on the admin post list page

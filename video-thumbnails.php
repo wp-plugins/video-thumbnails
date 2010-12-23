@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, and Blip.tv, along with several embedding plugins.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.5.3
+Version: 0.5.4
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -47,24 +47,27 @@ function getBliptvInfo($id) {
 }
 
 // The Main Event
-function get_video_thumbnail() {
+function get_video_thumbnail($post_id=null) {
+	
+	// Get the post ID if none is provided
+	if($post_id==null OR $post_id=='') $post_id = get_the_ID();
 	
 	// Check to see if thumbnail has already been found
-	$postid = get_the_ID();
-	if( ($thumbnail_meta = get_post_meta($postid, '_video_thumbnail', true)) != '' ) {
+	if( ($thumbnail_meta = get_post_meta($post_id, '_video_thumbnail', true)) != '' ) {
 		return $thumbnail_meta;
 	}
 	// If the thumbnail isn't stored in custom meta, fetch a thumbnail
 	else {
 
 		// Gets the post's content
-		$markup = get_the_content();
+		$post_array = get_post($post_id); 
+		$markup = $post_array->post_content;
 		$new_thumbnail = null;
 		
 		// Simple Video Embedder Compatibility
 		if(function_exists('p75HasVideo')) {
-			if ( p75HasVideo($postid) ) {
-			    $markup = p75GetVideo($postid);
+			if ( p75HasVideo($post_id) ) {
+			    $markup = p75GetVideo($post_id);
 			}
 		}
 		
@@ -150,7 +153,7 @@ function get_video_thumbnail() {
 		
 		// Return the new thumbnail variable and update meta if one is found
 		if($new_thumbnail!=null) {
-			if(!update_post_meta($postid, '_video_thumbnail', $new_thumbnail)) add_post_meta($postid, '_video_thumbnail', $new_thumbnail);
+			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail);
 		}
 		return $new_thumbnail;
 
@@ -158,8 +161,8 @@ function get_video_thumbnail() {
 };
 
 // Echo thumbnail
-function video_thumbnail() {
-	if( ( $video_thumbnail = get_video_thumbnail() ) == null ) { echo plugins_url() . "/video-thumbnails/default.jpg"; }
+function video_thumbnail($post_id=null) {
+	if( ( $video_thumbnail = get_video_thumbnail($post_id) ) == null ) { echo plugins_url() . "/video-thumbnails/default.jpg"; }
 	else { echo $video_thumbnail; }
 };
 
