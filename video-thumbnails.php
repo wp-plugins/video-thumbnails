@@ -2,10 +2,10 @@
 /*
 Plugin Name: Video Thumbnails
 Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
-Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, and Blip.tv, along with several embedding plugins.
+Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, Justin.tv, and Blip.tv, along with several embedding plugins.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.5.5
+Version: 0.6
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -44,6 +44,12 @@ function getBliptvInfo($id) {
 	$result = $xml->xpath("/rss/channel/item/media:thumbnail/@url");
 	$thumbnail = (string) $result[0]['url'];
 	return $thumbnail;
+}
+
+// Justin.tv Functions
+function getJustintvInfo($id) {
+	$xml = simplexml_load_file("http://api.justin.tv/api/clip/show/$id.xml");
+	return (string) $xml->clip->image_url_large;
 }
 
 // The Main Event
@@ -151,6 +157,19 @@ function get_video_thumbnail($post_id=null) {
 			}
 		}
 		
+		// Justin.tv
+		if($new_thumbnail==null) {
+		
+			// Justin.tv archive ID
+			preg_match('#archive_id=([0-9]+)#s', $markup, $matches);
+
+			// Now if we've found a Justin.tv archive ID, let's set the thumbnail URL
+			if(isset($matches[1])) {
+				$justin_thumbnail = getJustintvInfo($matches[1]);
+				$new_thumbnail = $justin_thumbnail;
+			}
+		}
+		
 		// Return the new thumbnail variable and update meta if one is found
 		if($new_thumbnail!=null) {
 			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail);
@@ -168,9 +187,9 @@ function video_thumbnail($post_id=null) {
 
 // Create Meta Fields on Edit Page
 
-add_action("admin_init", "admin_init");
+add_action("admin_init", "video_thumbnail_admin_init");
  
-function admin_init(){
+function video_thumbnail_admin_init(){
 	add_meta_box("video_thumbnail", "Video Thumbnail", "video_thumbnail_admin", "post", "side", "low");
 }
  
