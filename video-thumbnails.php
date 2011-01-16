@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.0
+Version: 1.0.1
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -332,61 +332,6 @@ function video_thumbnails_checkbox_option($option_name, $option_description) { ?
 	
 	<input type="hidden" name="action" value="update" />
 	<input type="hidden" name="page_options" value="video_thumbnails_save_media,video_thumbnails_set_featured" />
-	
-	</form>
-	
-	<h3>Scan all posts</h3>
-	
-	<p>Click to scan past posts for video thumbnails (this may take awhile)</p>
-<?php
-
-// If the button was clicked
-if ( ! empty( $_POST['scan-for-thumbnails'] ) ) {
-	// Capability check
-	if ( !current_user_can( 'manage_options' ) )
-		wp_die( __( 'Cheatin&#8217; uh?' ) );
-	
-	// Form nonce check
-	check_admin_referer( 'scan-for-thumbnails' );
-	
-	query_posts('posts_per_page=-1');
-	
-	$home_url = str_replace("/","\/",home_url());
-	
-	echo '<p><ol>';
-	while (have_posts()) : the_post();
-		echo '<li>';
-		echo '<strong>' . get_the_title() . '</strong> - ';
-		if( ($video_thumbnail=get_video_thumbnail())!=null ) {
-			echo 'Found one, ';
-			if (preg_match('/^'.$home_url.'/', $video_thumbnail)) {
-				echo 'and it\'s already local.';
-		    } else {
-				echo 'but it\'s remote. ';
-				if(delete_post_meta(get_the_ID(), '_video_thumbnail')) {
-					echo 'Remote file has been removed, ';
-				}
-				if( ($video_thumbnail=get_video_thumbnail())!=null ) {
-					echo 'and a local one has been created at ' . $video_thumbnail;
-				} else {
-					echo 'but no new one could be found. Did you remove the video?';
-				}
-			}
-		} else {
-			echo 'None found.';
-		}
-		echo '</li>';
-	endwhile;
-	echo '</ol></p>';
-
-}
-
-?>
-
-	<form method="post" action="">
-	<?php wp_nonce_field('scan-for-thumbnails') ?>
-
-	<p><input type="submit" class="button" name="scan-for-thumbnails" id="scan-for-thumbnails" value="Scan for Video Thumbnails" /></p>
 
 	</form>
 
