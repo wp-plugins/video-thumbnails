@@ -2,10 +2,10 @@
 /*
 Plugin Name: Video Thumbnails
 Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
-Description: Make adding video thumbnails to your posts easier and automatic, just add <code>&lt;?php video_thumbnail(); ?&gt;</code> to your loop to get the thumbnail's URL. <code>&lt;?php get_video_thumbnail(); ?&gt;</code> is also available for more advanced users. Currently works with YouTube, Vimeo, Justin.tv, and Blip.tv, along with several embedding plugins.
+Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 0.6
+Version: 1.0
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -172,7 +172,41 @@ function get_video_thumbnail($post_id=null) {
 		
 		// Return the new thumbnail variable and update meta if one is found
 		if($new_thumbnail!=null) {
+		
+			// Save as Attachment if enabled
+			if(get_option('video_thumbnails_save_media')==1) {
+			
+				$upload = wp_upload_bits(basename($new_thumbnail), null, file_get_contents($new_thumbnail));
+				
+				$new_thumbnail = $upload['url'];
+				
+				$filename = $upload['file'];
+				
+				$wp_filetype = wp_check_filetype(basename($filename), null );
+				$attachment = array(
+				   'post_mime_type' => $wp_filetype['type'],
+				   'post_title' => get_the_title($post_id),
+				   'post_content' => '',
+				   'post_status' => 'inherit'
+				);
+				$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+				// you must first include the image.php file
+				// for the function wp_generate_attachment_metadata() to work
+				require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+				wp_update_attachment_metadata( $attach_id,  $attach_data );
+				
+			}
+			
+			// Add hidden custom field with thumbnail URL
 			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail);
+			
+			// Set attachment as featured image if enabled
+			if(get_option('video_thumbnails_set_featured')==1 && get_option('video_thumbnails_save_media')==1) {
+				if(!has_post_thumbnail($post_id)) {
+					if(!update_post_meta($post_id, '_thumbnail_id', $attach_id)) add_post_meta($post_id, '_thumbnail_id', $attach_id);
+				}
+			}
 		}
 		return $new_thumbnail;
 
@@ -224,6 +258,143 @@ add_action('save_post', 'save_video_thumbnail');
 
 function save_video_thumbnail($post_ID){
   get_video_thumbnail($post_ID);
+}
+
+// Set Default Options
+
+register_activation_hook(__FILE__,'video_thumbnails_activate');
+register_deactivation_hook(__FILE__,'video_thumbnails_deactivate');
+
+function video_thumbnails_activate() {
+	add_option('video_thumbnails_save_media','1');
+	add_option('video_thumbnails_set_featured','1');
+}
+
+function video_thumbnails_deactivate() {
+	delete_option('video_thumbnails_save_media');
+	delete_option('video_thumbnails_set_featured');
+}
+
+// Aministration
+
+add_action('admin_menu', 'video_thumbnails_menu');
+
+function video_thumbnails_menu() {
+
+  add_options_page('Video Thumbnail Options', 'Video Thumbnails', 'manage_options', 'video-thumbnail-options', 'video_thumbnail_options');
+
+}
+
+function video_thumbnail_options() {
+
+  if (!current_user_can('manage_options'))  {
+    wp_die( __('You do not have sufficient permissions to access this page.') );
+  }
+  
+function video_thumbnails_checkbox_option($option_name, $option_description) { ?>
+	<fieldset><legend class="screen-reader-text"><span><?php echo $option_description; ?></span></legend> 
+	<label for="<?php echo $option_name; ?>"><input name="<?php echo $option_name; ?>" type="checkbox" id="<?php echo $option_name; ?>" value="1" <?php if(get_option($option_name)==1) echo "checked='checked'"; ?>/> <?php echo $option_description; ?></label> 
+	</fieldset> <?php
+}
+
+?>
+
+<div class="wrap">
+	
+	<div id="icon-options-general" class="icon32"></div><h2>Video Thumbnails Options</h2>
+
+	<form method="post" action="options.php">
+	<?php wp_nonce_field('update-options'); ?>
+	
+	<table class="form-table">
+	
+	<tr valign="top"> 
+	<th scope="row">Save Thumbnail to Media</th> 
+	<td><?php video_thumbnails_checkbox_option('video_thumbnails_save_media', 'Save local copies of thumbnails using the media library'); ?></td> 
+	</tr>
+
+	<tr valign="top"> 
+	<th scope="row">Set as Featured Image</th> 
+	<td><?php video_thumbnails_checkbox_option('video_thumbnails_set_featured', 'Automatically set thumbnail as featured image ("Save Thumbnail to Media" must be enabled)'); ?></td> 
+	</tr>
+		
+	</table>
+	
+	<p class="submit">
+	<input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+	</p>
+	
+	<h3>How to use</h3>
+	
+	<p>For themes that use featured images, simply leave the two settings above enabled.</p>
+	
+	<p>For more detailed instructions, check out the page for <a href="http://wordpress.org/extend/plugins/video-thumbnails/">Video Thumbnails on the official plugin directory</a>.</p>
+	
+	<input type="hidden" name="action" value="update" />
+	<input type="hidden" name="page_options" value="video_thumbnails_save_media,video_thumbnails_set_featured" />
+	
+	</form>
+	
+	<h3>Scan all posts</h3>
+	
+	<p>Click to scan past posts for video thumbnails (this may take awhile)</p>
+<?php
+
+// If the button was clicked
+if ( ! empty( $_POST['scan-for-thumbnails'] ) ) {
+	// Capability check
+	if ( !current_user_can( 'manage_options' ) )
+		wp_die( __( 'Cheatin&#8217; uh?' ) );
+	
+	// Form nonce check
+	check_admin_referer( 'scan-for-thumbnails' );
+	
+	query_posts('posts_per_page=-1');
+	
+	$home_url = str_replace("/","\/",home_url());
+	
+	echo '<p><ol>';
+	while (have_posts()) : the_post();
+		echo '<li>';
+		echo '<strong>' . get_the_title() . '</strong> - ';
+		if( ($video_thumbnail=get_video_thumbnail())!=null ) {
+			echo 'Found one, ';
+			if (preg_match('/^'.$home_url.'/', $video_thumbnail)) {
+				echo 'and it\'s already local.';
+		    } else {
+				echo 'but it\'s remote. ';
+				if(delete_post_meta(get_the_ID(), '_video_thumbnail')) {
+					echo 'Remote file has been removed, ';
+				}
+				if( ($video_thumbnail=get_video_thumbnail())!=null ) {
+					echo 'and a local one has been created at ' . $video_thumbnail;
+				} else {
+					echo 'but no new one could be found. Did you remove the video?';
+				}
+			}
+		} else {
+			echo 'None found.';
+		}
+		echo '</li>';
+	endwhile;
+	echo '</ol></p>';
+
+}
+
+?>
+
+	<form method="post" action="">
+	<?php wp_nonce_field('scan-for-thumbnails') ?>
+
+	<p><input type="submit" class="button" name="scan-for-thumbnails" id="scan-for-thumbnails" value="Scan for Video Thumbnails" /></p>
+
+	</form>
+
+
+</div>
+
+<?php
+
 }
 
 ?>

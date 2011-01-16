@@ -1,56 +1,87 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
-Donate link: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
-Tags: Video, YouTube, Vimeo, Blip.tv, Thumbnails
+Donate link: http://amzn.com/w/1L25YG6FO8AZ1
+Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
-Tested up to: 3.0.3
-Stable tag: 0.6
+Tested up to: 3.0.4
+Stable tag: 1.0
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
 == Description ==
 
-Video Thumbnails makes it simple to display video thumbnails in your templates. Simply use `<?php video_thumbnail(); ?>` in a loop to find and echo the URL of the first video embedded in a post, or use `<?php $video_thumbnail = get_video_thumbnail(); ?>` if you want to return the URL for use as a variable.
+Video Thumbnails makes it easy to automatically display video thumbnails in your template. This plugin will pull the thumbnail for you, save it to your media library, and set it as the featured image. You can choose to turn off featured images
 
-Video Thumbnails currently supports:
+Video Thumbnails currently supports these video services:
 
 * YouTube
 * Vimeo
 * Justin.tv
 * Blip.tv
+
+Support is also included for the following plugins, with universal plugin support coming soon:
+
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 * [JR Embed](http://plugins.jakeruston.co.uk/wordpress/wordpress-plugin-jr-embed/)
 
-When using `video_thumbnail()` and no thumbnail is found, a default thumbnail is echoed, which can be changed by replacing the `default.jpg` file found in your `/plugins/video-thumbnails/` directory.
+Some functions are available to advanced users who want to customize their theme:
 
-For more advanced users, the `get_video_thumbnail()` function will return null when no thumbnail is found so a conditional statement can be used to detect if a thumbnail is present and decide what to echo. Here's an example of how to only echo a thumbnail when one is found: `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>`
+* `<?php video_thumbnail(); ?>` will echo a thumbnail URL or the default image located at `wp-content/plugins/video-thumbnails/default.jpg` if a thumbnail cannot be found. Here is an example: `<img src="<?php video_thumbnail(); ?>" width="300" />`
+* `<?php $video_thumbnail = get_video_thumbnail(); ?>` will return the thumbnail URL or return NULL if none is found. In this example, a thumbnail is only shown if one is found: `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>`
 
 == Installation ==
 
 1. Upload the `/video-thumbnails/` directory to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Use `<?php video_thumbnail(); ?>` in a loop inside your template to echo the thumbnail URL. Because this is only a URL, you should set it as an image tag's source. For example, `<img src="<?php video_thumbnail(); ?>" />`. If you'd like to return the URL for use in your PHP, use `get_video_thumbnail()`. For example, `<?php $video_thumbnail = get_video_thumbnail(); ?>`.
 
 == Frequently Asked Questions ==
 
+= My theme isn't showing thumbnails, what's wrong? =
+
+The most likely problem is that your theme doesn't support post thumbnails. If thumbnails are supported, you should see a box titled "Featured Image" on the edit post page. If thumbnails aren't supported, your theme will have to be modified.
+
 = Can I use the functions outside of a loop? =
 
-Yes, but you must pass the post ID to the function as a parameter. For example: `<?php $id = 25; $thumbnail = get_video_thumbnail($id); if($thumbnail!=null) echo $thumbnail; ?>`
+Yes, but you must pass the post ID to the function as a parameter. For example: `<?php $thumbnail = get_video_thumbnail(25); ?>`
 
 = My video service/embedding plugin isn't included, can you add it? =
 
 If the service allows a way to retrieve thumbnails, I'll do my best to add it.
 
-= I only want a thumbnail when one is found, how would I do this? =
+= I am editing my theme and only want to display a thumbnail if one is found. How do I do this? =
 
-In version 0.2 `get_video_thumbnail()` was added which returns null when no thumbnail is found. This means you can use something like `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>` to only display a thumbnail when one exists.
+`<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>` will only display a thumbnail when one exists.
+
+= I edited my theme and now I'm getting huge thumbnails, how can I resize them? =
+
+Adding a width attribute to the image element should scale the image in most modern browsers. Ex: `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' width='300' />"; } ?>`
+
+You can also assign a class to the element and style it with CSS, or even use a library like [TimThumb](http://code.google.com/p/timthumb/) to resize your images.
+
+= I edited my theme and now I'm seeing the thumbnail and the video, how do I only display the thumbnail? =
+
+Every theme is different, so this can be tricky if you aren't familiar with WordPress theme development. You need to edit your template in the appropriate place, replacing `<?php the_content(); >` with `<?php the_excerpt(); >` so that only an excerpt of the post is shown on the home page or wherever you would like to display the video thumbnail.
+
+= Why are there black bars on some YouTube thumbnails? =
+
+This is an unfortunate side effect of widescreen videos on YouTube. The thumbnail YouTube provides is always the same ratio, which creates black bars when a video is widescreen. Some themes will crop featured images and it may not be visible, but if you are comfortable editing your theme, I recommend using [TimThumb](http://code.google.com/p/timthumb/) to resize and crop your images.
+
+= Why did it stop finding thumbnails for Vimeo? =
+
+The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try again after a few hours.
 
 == Screenshots ==
 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.0 =
+* Video Thumbnails can now be stored in the local WordPress media library
+* Video Thumbnails stored locally can automatically be set as the featured image, making it support many themes automatically
+* Added an options page to enable/disable local storage and enable/disable automatically setting that thumbnail as the featured image
+* Settings page also includes a button to scan all posts for video thumbnails
 
 = 0.6 =
 * Added support for Justin.tv
@@ -105,6 +136,9 @@ In version 0.2 `get_video_thumbnail()` was added which returns null when no thum
 
 == Upgrade Notice ==
 
+= 1.0 =
+This is the single biggest update to Video Thumbnails so far, so be sure to check out the new settings page and documentation.
+
 = 0.5 =
 This version adds the thumbnail URL to the post's meta data, meaning any outside APIs only have to be queried once per post. Vimeo's rate limit was easily exceeded, so this should fix that problem.
 
@@ -116,8 +150,7 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 This plugin is still very young, and has a future planned as the ultimate plugin for video thumbnails. Here's some of the planned additions:
 
-* An option to save thumbnails as post attachments and as the featured image, giving the plugin out-of-the-box compatibility with themes that use the Featured Image functionality of WordPress (I'd like some feedback on this idea)
-* More comprehensive Blip.tv support
+* Better Blip.tv support
 * More services
-* Broader plugin compatibility
+* Universal plugin compatibility
 * Option to display video thumbnails on the admin post list page
