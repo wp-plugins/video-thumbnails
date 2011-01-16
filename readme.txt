@@ -147,7 +147,8 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
-* While not really an issue, the current method for only displaying a thumbnail if one is found seems like it could be streamlined for less experienced users, so if you have any suggestions let me know.
+* "Scan for Video Thumbnails" button can cause errors and has been removed until it can be fixed.
+* Posts with thumbnails manually set are overwritten by thumbnails found by the plugin, a solution is to save the post then select a different thumbnail without saving the whole post again
 
 == Roadmap ==
 
