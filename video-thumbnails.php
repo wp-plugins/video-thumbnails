@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.0.1
+Version: 1.0.3
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -26,16 +26,19 @@ License: GPL2
 
 // Get Vimeo Thumbnail
 function getVimeoInfo($id, $info = 'thumbnail_large') {
-    if (!function_exists('curl_init')) die('CURL is not installed!');
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://vimeo.com/api/v2/video/$id.php");
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    $output = unserialize(curl_exec($ch));
-    $output = $output[0][$info];
-    curl_close($ch);
-    return $output;
+    if (!function_exists('curl_init')) {
+    	return null;
+    } else {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, "http://vimeo.com/api/v2/video/$id.php");
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		$output = unserialize(curl_exec($ch));
+		$output = $output[0][$info];
+		curl_close($ch);
+		return $output;
+    }
 };
 
 // Blip.tv Functions
@@ -95,14 +98,18 @@ function get_video_thumbnail($post_id=null) {
 			$youtube_thumbnail = 'http://img.youtube.com/vi/' . $matches[1] . '/0.jpg';
 			
 			// Check to make sure it's an actual thumbnail
-			$ch = curl_init($youtube_thumbnail);
-			curl_setopt($ch, CURLOPT_NOBODY, true);
-			curl_exec($ch);
-			$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			// $retcode > 400 -> not found, $retcode = 200, found.
-			curl_close($ch);
-			if($retcode==200) {
+			if (!function_exists('curl_init')) {
 				$new_thumbnail = $youtube_thumbnail;
+			} else {
+				$ch = curl_init($youtube_thumbnail);
+				curl_setopt($ch, CURLOPT_NOBODY, true);
+				curl_exec($ch);
+				$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+				// $retcode > 400 -> not found, $retcode = 200, found.
+				curl_close($ch);
+				if($retcode==200) {
+					$new_thumbnail = $youtube_thumbnail;
+				}
 			}
 		}
 		
@@ -202,10 +209,8 @@ function get_video_thumbnail($post_id=null) {
 			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail);
 			
 			// Set attachment as featured image if enabled
-			if(get_option('video_thumbnails_set_featured')==1 && get_option('video_thumbnails_save_media')==1) {
-				if(!has_post_thumbnail($post_id)) {
-					if(!update_post_meta($post_id, '_thumbnail_id', $attach_id)) add_post_meta($post_id, '_thumbnail_id', $attach_id);
-				}
+			if(get_option('video_thumbnails_set_featured')==1 && get_option('video_thumbnails_save_media')==1 && get_post_meta($post_id, '_thumbnail_id', true) == '' ) {
+				if(!update_post_meta($post_id, '_thumbnail_id', $attach_id)) add_post_meta($post_id, '_thumbnail_id', $attach_id);
 			}
 		}
 		return $new_thumbnail;
@@ -273,6 +278,17 @@ function video_thumbnails_activate() {
 function video_thumbnails_deactivate() {
 	delete_option('video_thumbnails_save_media');
 	delete_option('video_thumbnails_set_featured');
+}
+
+// Check for cURL
+
+register_activation_hook(__FILE__,'video_thumbnails_curl_check');
+
+function video_thumbnails_curl_check(){
+	if (!function_exists('curl_init')) {
+		deactivate_plugins(basename(__FILE__)); // Deactivate ourself
+		wp_die("Sorry, but this plugin requires cURL to be activated on your server.<BR><BR>Google should be able to help you.");
+	}
 }
 
 // Aministration
