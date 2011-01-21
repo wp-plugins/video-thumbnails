@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.0.4
+Version: 1.0.5
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -189,7 +189,15 @@ function get_video_thumbnail($post_id=null) {
 			// Save as Attachment if enabled
 			if(get_option('video_thumbnails_save_media')==1) {
 			
-				$upload = wp_upload_bits(basename($new_thumbnail), null, file_get_contents($new_thumbnail));
+				$ch = curl_init(); 
+				$timeout = 0; 
+				curl_setopt ($ch, CURLOPT_URL, $new_thumbnail); 
+				curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1); 
+				curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout); 
+				$image_contents = curl_exec($ch); 
+				curl_close($ch); 
+			
+				$upload = wp_upload_bits(basename($new_thumbnail), null, $image_contents);
 				
 				$new_thumbnail = $upload['url'];
 				
