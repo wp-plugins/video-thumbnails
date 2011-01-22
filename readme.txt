@@ -4,7 +4,7 @@ Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.4
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
@@ -76,6 +76,9 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.0.6 =
+* Improved Blip.tv support
 
 = 1.0.5 =
 * Now using cURL to help save thumbnails locally instead of file_get_contents()

@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.0.5
+Version: 1.0.6
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -43,10 +43,10 @@ function getVimeoInfo($id, $info = 'thumbnail_large') {
 
 // Blip.tv Functions
 function getBliptvInfo($id) {
-	$xml = simplexml_load_file("http://blip.tv/file/$id?skin=rss");
-	$result = $xml->xpath("/rss/channel/item/media:thumbnail/@url");
-	$thumbnail = (string) $result[0]['url'];
-	return $thumbnail;
+	$xml = simplexml_load_file("http://blip.tv/players/episode/$id?skin=rss");
+    $result = $xml->xpath("/rss/channel/item/media:thumbnail/@url");
+    $thumbnail = (string) $result[0]['url'];
+    return $thumbnail;
 }
 
 // Justin.tv Functions
@@ -161,7 +161,7 @@ function get_video_thumbnail($post_id=null) {
 		if($new_thumbnail==null) {
 		
 			// Blip.tv file URL
-			preg_match('#http://blip.tv/file/([0-9]+)#s', $markup, $matches);
+			preg_match('#http://blip.tv/play/([A-Za-z0-9]+)#s', $markup, $matches);
 
 			// Now if we've found a Blip.tv file URL, let's set the thumbnail URL
 			if(isset($matches[1])) {
