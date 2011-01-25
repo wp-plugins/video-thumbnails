@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.0.8
+Version: 1.0.9
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -220,11 +220,11 @@ function get_video_thumbnail($post_id=null) {
 			}
 			
 			// Add hidden custom field with thumbnail URL
-			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail);
+			if(!update_post_meta($post_id, '_video_thumbnail', $new_thumbnail)) add_post_meta($post_id, '_video_thumbnail', $new_thumbnail, true);
 			
 			// Set attachment as featured image if enabled
 			if(get_option('video_thumbnails_set_featured')==1 && get_option('video_thumbnails_save_media')==1 && get_post_meta($post_id, '_thumbnail_id', true) == '' ) {
-				if(!update_post_meta($post_id, '_thumbnail_id', $attach_id)) add_post_meta($post_id, '_thumbnail_id', $attach_id);
+				if(!update_post_meta($post_id, '_thumbnail_id', $attach_id)) add_post_meta($post_id, '_thumbnail_id', $attach_id, true);
 			}
 		}
 		return $new_thumbnail;
@@ -257,20 +257,6 @@ function video_thumbnail_admin(){
 	<?php
 }
 
-// Save Meta Details
-
-add_action('save_post', 'save_details');
-
-function save_details(){
-	global $post;
-	if(isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]!='') {
-		if(!update_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"])) add_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"], true);
-	}
-	if(isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]=='') {
-		delete_post_meta($post->ID, "_video_thumbnail");
-	}
-}
-
 // Find video thumbnail when saving a post, but not on autosave
 
 add_action('save_post', 'save_video_thumbnail');
@@ -279,7 +265,18 @@ function save_video_thumbnail($post_ID){
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
 		return $post_ID;
 	} else {
-		get_video_thumbnail($post_ID);
+		global $post;
+		$custom = get_post_custom($post->ID);
+		$old_thumbnail = $custom["_video_thumbnail"][0];
+		if ($old_thumbnail == '') {
+			get_video_thumbnail($post_ID);
+		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]==$old_thumbnail) {
+			return $post_ID;
+		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]!='') {
+			if(!update_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"])) add_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"], true);
+		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]=='') {
+			delete_post_meta($post->ID, "_video_thumbnail");
+		}
 	}
 }
 

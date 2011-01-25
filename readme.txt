@@ -4,7 +4,7 @@ Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.0.4
-Stable tag: 1.0.7
+Stable tag: 1.0.9
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
 
@@ -77,8 +77,11 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 
 == Changelog ==
 
+= 1.0.9 =
+* More work on fixing the duplicate image bug
+
 = 1.0.8 =
-* Addressed another bug that could create duplicate images when updating a post
+* (Attempted to) fix another bug that could create duplicate images when updating a post
 
 = 1.0.7 =
 * Fixed a bug that could create duplicate images on auto-save
@@ -167,6 +170,7 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
+* Duplicate images were being created in certain situations, but I hope that the issue has finally been resolved. Please let me know if you still are experiencing this issue.
 * "Scan for Video Thumbnails" button can cause errors and has been removed until it can be fixed.
 * Posts with thumbnails manually set are overwritten by thumbnails found by the plugin, a solution is to save the post then select a different thumbnail without saving the whole post again
 
