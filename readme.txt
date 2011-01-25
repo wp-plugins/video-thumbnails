@@ -164,6 +164,7 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
+* Duplicate images no longer appear on auto-save, but may be created when a post is updated - fix coming very soon.
 * "Scan for Video Thumbnails" button can cause errors and has been removed until it can be fixed.
 * Posts with thumbnails manually set are overwritten by thumbnails found by the plugin, a solution is to save the post then select a different thumbnail without saving the whole post again
 
