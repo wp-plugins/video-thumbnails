@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.1
+Version: 1.1.1
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -261,17 +261,17 @@ function video_thumbnail_admin(){
 
 add_action('save_post', 'save_video_thumbnail');
 
-function save_video_thumbnail($post_ID){
+function save_video_thumbnail(){
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
-		return $post_ID;
+		return null;
 	} else {
 		global $post;
 		$custom = get_post_custom($post->ID);
 		$old_thumbnail = $custom["_video_thumbnail"][0];
 		if ($old_thumbnail == '') {
-			get_video_thumbnail($post_ID);
+			get_video_thumbnail($post->ID);
 		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]==$old_thumbnail) {
-			return $post_ID;
+			return null;
 		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]!='') {
 			if(!update_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"])) add_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"], true);
 		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]=='') {
