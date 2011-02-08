@@ -3,7 +3,7 @@ Contributors: sutherlandboswell
 Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
-Tested up to: 3.0.4
+Tested up to: 3.1
 Stable tag: 1.1.1
 
 Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
