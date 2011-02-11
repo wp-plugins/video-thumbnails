@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.1.1
+Version: 1.5
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -250,33 +250,82 @@ function video_thumbnail_admin(){
 	global $post;
 	$custom = get_post_custom($post->ID);
 	$video_thumbnail = $custom["_video_thumbnail"][0];
-	?>
-	<p><label>Video Thumbnail URL:</label></p>
-	<p><input type="text" size="16" name="video_thumbnail" style="width:250px;" value="<?php echo $video_thumbnail; ?>" /></p>
-	<?php if(isset($video_thumbnail) && $video_thumbnail!='') { ?><p><img src="<?php echo $video_thumbnail; ?>" width="100%" /></p><?php } ?>
-	<?php
+	
+	if(isset($video_thumbnail) && $video_thumbnail!='') {
+		echo '<p id="video-thumbnails-preview"><img src="' . $video_thumbnail . '" width="100%" /></p>';
+	}
+	
+	if ( get_post_status() == 'publish') {
+		if(isset($video_thumbnail) && $video_thumbnail!='') {
+			echo '<p><a href="#" id="video-thumbnails-reset" onclick="video_thumbnails_reset(\'' . $post->ID . '\');return false;">Reset Video Thumbnail</a></p>';
+		} else {
+			echo '<p id="video-thumbnails-preview">We didn\'t find a video thumbnail for this post.</p>';
+			echo '<p><a href="#" id="video-thumbnails-reset" onclick="video_thumbnails_reset(\'' . $post->ID . '\');return false;">Search Again</a></p>';
+		}
+	} else {
+		if(isset($video_thumbnail) && $video_thumbnail!='') {
+			echo '<p><a href="#" id="video-thumbnails-reset" onclick="video_thumbnails_reset(\'' . $post->ID . '\');return false;">Reset Video Thumbnail</a></p>';
+		} else {
+			echo '<p>A video thumbnail will be found for this post when it is published.</p>';
+		}
+	}
+}
+
+// AJAX Searching
+
+add_action('admin_head', 'video_thumbnails_ajax');
+
+function video_thumbnails_ajax() {
+?>
+<script type="text/javascript" >
+function video_thumbnails_reset(id) {
+
+	var data = {
+		action: 'video_thumbnails',
+		post_id: id
+	};
+	
+	document.getElementById('video-thumbnails-preview').innerHTML = 'Working... <img src="<?php echo home_url('wp-admin/images/loading.gif'); ?>"/>';
+
+	// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+	jQuery.post(ajaxurl, data, function(response) {
+		document.getElementById('video-thumbnails-preview').innerHTML = response;
+	});
+};
+</script>
+<?php
+}
+
+add_action('wp_ajax_video_thumbnails', 'video_thumbnails_callback');
+
+function video_thumbnails_callback() {
+	global $wpdb; // this is how you get access to the database
+
+	$post_id = $_POST['post_id'];
+
+	delete_post_meta($post_id, '_video_thumbnail');
+
+        if ( ($video_thumbnail=get_video_thumbnail($post_id)) != null ) {
+        	echo '<img src="' . $video_thumbnail . '" width="100%" />';
+        } else {
+        	echo 'We didn\'t find a video thumbnail for this post. (be sure you have saved changes first)';
+        }
+
+	die();
 }
 
 // Find video thumbnail when saving a post, but not on autosave
 
-add_action('save_post', 'save_video_thumbnail');
+add_action('new_to_publish', 'save_video_thumbnail', 10, 1);
+add_action('draft_to_publish', 'save_video_thumbnail', 10, 1);
+add_action('pending_to_publish', 'save_video_thumbnail', 10, 1);
+add_action('future_to_publish', 'save_video_thumbnail', 10, 1);
 
-function save_video_thumbnail(){
+function save_video_thumbnail( $post ){
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
 		return null;
 	} else {
-		global $post;
-		$custom = get_post_custom($post->ID);
-		$old_thumbnail = $custom["_video_thumbnail"][0];
-		if ($old_thumbnail == '') {
-			get_video_thumbnail($post->ID);
-		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]==$old_thumbnail) {
-			return null;
-		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]!='') {
-			if(!update_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"])) add_post_meta($post->ID, "_video_thumbnail", $_POST["video_thumbnail"], true);
-		} elseif (isset($_POST["video_thumbnail"]) && $_POST["video_thumbnail"]=='') {
-			delete_post_meta($post->ID, "_video_thumbnail");
-		}
+		get_video_thumbnail($post->ID);
 	}
 }
 

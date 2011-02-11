@@ -4,13 +4,13 @@ Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.1
-Stable tag: 1.1.1
+Stable tag: 1.5
 
-Video Thumbnails is a simple plugin that makes it easy to automatically display video thumbnails in your template.
+Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
 == Description ==
 
-Video Thumbnails makes it easy to automatically display video thumbnails in your template. This plugin will pull the thumbnail for you, save it to your media library, and set it as the featured image. You can choose to turn off featured images
+Video Thumbnails makes it easy to automatically display video thumbnails in your template. This plugin will find the first video in your post, find the thumbnail, and can then save the video thumbnail to your media library. There's even an option to automatically set this as the featured image!
 
 Video Thumbnails currently supports these video services:
 
@@ -19,8 +19,9 @@ Video Thumbnails currently supports these video services:
 * Justin.tv
 * Blip.tv
 
-Support is also included for the following plugins, with universal plugin support coming soon:
+Video Thumbnails even works with most video embedding plugins, including:
 
+* [Viper's Video Quicktags](http://wordpress.org/extend/plugins/vipers-video-quicktags/)
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 * [JR Embed](http://plugins.jakeruston.co.uk/wordpress/wordpress-plugin-jr-embed/)
@@ -39,11 +40,11 @@ Some functions are available to advanced users who want to customize their theme
 
 = My theme isn't showing thumbnails, what's wrong? =
 
-The most likely problem is that your theme doesn't support post thumbnails. If thumbnails are supported, you should see a box titled "Featured Image" on the edit post page. If thumbnails aren't supported, your theme will have to be modified.
+The most likely problem is that your theme doesn't support post thumbnails. If thumbnails are supported, you should see a box titled "Featured Image" on the edit post page. If thumbnails aren't supported, your theme will have to be modified to support Featured Images or to support one of our custom functions.
 
 = Can I use the functions outside of a loop? =
 
-Yes, but you must pass the post ID to the function as a parameter. For example: `<?php $thumbnail = get_video_thumbnail(25); ?>`
+Yes, but be sure to include the post ID as a parameter. For example: `<?php $thumbnail = get_video_thumbnail(25); ?>`
 
 = My video service/embedding plugin isn't included, can you add it? =
 
@@ -76,6 +77,12 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.5 =
+* Video thumbnails are now only saved when a post's status changes to published.
+* Removed URL field from the Video Thumbnail meta box on the Edit Post Page
+* Added a "Reset Video Thumbnail" button to the meta box
+* Accidental duplicate images should no longer be problem
 
 = 1.1.1 =
 * Fixed a bug related to scheduled posts sometimes not saving thumbnail URL to the meta field
@@ -176,7 +183,6 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
-* Duplicate images were being created in certain situations, but I hope that the issue has finally been resolved. Please let me know if you still are experiencing this issue.
 * "Scan for Video Thumbnails" button can cause errors and has been removed until it can be fixed.
 * Posts with thumbnails manually set are overwritten by thumbnails found by the plugin, a solution is to save the post then select a different thumbnail without saving the whole post again
 
@@ -186,5 +192,4 @@ This plugin is still very young, and has a future planned as the ultimate plugin
 
 * Better Blip.tv support
 * More services
-* Universal plugin compatibility
 * Option to display video thumbnails on the admin post list page
