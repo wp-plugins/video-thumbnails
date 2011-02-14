@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.5
+Version: 1.6
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -243,7 +243,12 @@ function video_thumbnail($post_id=null) {
 add_action("admin_init", "video_thumbnail_admin_init");
  
 function video_thumbnail_admin_init(){
-	add_meta_box("video_thumbnail", "Video Thumbnail", "video_thumbnail_admin", "post", "side", "low");
+	$video_thumbnails_post_types = get_option('video_thumbnails_post_types');
+	if(is_array($video_thumbnails_post_types)) {
+		foreach ($video_thumbnails_post_types as $type) {
+			add_meta_box("video_thumbnail", "Video Thumbnail", "video_thumbnail_admin", $type, "side", "low");
+		}
+	}
 }
  
 function video_thumbnail_admin(){
@@ -322,10 +327,17 @@ add_action('pending_to_publish', 'save_video_thumbnail', 10, 1);
 add_action('future_to_publish', 'save_video_thumbnail', 10, 1);
 
 function save_video_thumbnail( $post ){
+	$post_type = get_post_type( $post->ID );
+	$video_thumbnails_post_types = get_option('video_thumbnails_post_types');
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
 		return null;
 	} else {
-		get_video_thumbnail($post->ID);
+		// Check that Video Thumbnails are enabled for current post type
+		if (in_array($post_type, $video_thumbnails_post_types) OR $post_type == $video_thumbnails_post_types) {
+			get_video_thumbnail($post->ID);
+		} else {
+			return null;
+		}
 	}
 }
 
@@ -337,11 +349,13 @@ register_deactivation_hook(__FILE__,'video_thumbnails_deactivate');
 function video_thumbnails_activate() {
 	add_option('video_thumbnails_save_media','1');
 	add_option('video_thumbnails_set_featured','1');
+	add_option('video_thumbnails_post_types',array('post'));
 }
 
 function video_thumbnails_deactivate() {
 	delete_option('video_thumbnails_save_media');
 	delete_option('video_thumbnails_set_featured');
+	delete_option('video_thumbnails_post_types');
 }
 
 // Check for cURL
@@ -397,6 +411,20 @@ function video_thumbnails_checkbox_option($option_name, $option_description) { ?
 	<th scope="row">Set as Featured Image</th> 
 	<td><?php video_thumbnails_checkbox_option('video_thumbnails_set_featured', 'Automatically set thumbnail as featured image ("Save Thumbnail to Media" must be enabled)'); ?></td> 
 	</tr>
+	
+	<tr valign="top"> 
+	<th scope="row">Post Types</th> 
+	<td>
+	<?php $video_thumbnails_post_types = get_option('video_thumbnails_post_types'); ?>
+	   <?php foreach(get_post_types() as $type): if($type == 'attachment' OR $type == 'revision' OR $type == 'nav_menu_item') continue; ?>
+	   <label for="video_thumbnails_post_types_<?php echo $type; ?>">
+	     <input id="video_thumbnails_post_types_<?php echo $type; ?>" name="video_thumbnails_post_types[]" type="checkbox" value="<?php echo $type; ?>" <?php if(is_array($video_thumbnails_post_types)) checked(in_array($type, $video_thumbnails_post_types)); ?> />
+	     <?php echo $type; ?>
+	   </label>
+	   <br />
+	   <?php endforeach; ?>
+	</td>
+	</tr>
 		
 	</table>
 	
@@ -411,7 +439,7 @@ function video_thumbnails_checkbox_option($option_name, $option_description) { ?
 	<p>For more detailed instructions, check out the page for <a href="http://wordpress.org/extend/plugins/video-thumbnails/">Video Thumbnails on the official plugin directory</a>.</p>
 	
 	<input type="hidden" name="action" value="update" />
-	<input type="hidden" name="page_options" value="video_thumbnails_save_media,video_thumbnails_set_featured" />
+	<input type="hidden" name="page_options" value="video_thumbnails_save_media,video_thumbnails_set_featured,video_thumbnails_post_types" />
 
 	</form>
 

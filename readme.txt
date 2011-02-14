@@ -4,13 +4,13 @@ Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, YouTube, Vimeo, Blip.tv, Justin.tv, Thumbnails
 Requires at least: 3.0
 Tested up to: 3.1
-Stable tag: 1.5
+Stable tag: 1.6
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
 == Description ==
 
-Video Thumbnails makes it easy to automatically display video thumbnails in your template. This plugin will find the first video in your post, find the thumbnail, and can then save the video thumbnail to your media library. There's even an option to automatically set this as the featured image!
+Video Thumbnails makes it easy to automatically display video thumbnails in your template. When you publish a post, this plugin will find the first video embedded and locate the thumbnail for you. Thumbnails can be saved to your media library and set as a featured image automatically. There's even support for custom post types!
 
 Video Thumbnails currently supports these video services:
 
@@ -50,6 +50,10 @@ Yes, but be sure to include the post ID as a parameter. For example: `<?php $thu
 
 If the service allows a way to retrieve thumbnails, I'll do my best to add it.
 
+= How do I use this plugin with custom post types? =
+
+The settings page includes a checklist of all your post types so you can pick and choose.
+
 = I am editing my theme and only want to display a thumbnail if one is found. How do I do this? =
 
 `<?php if( ( $video_thumbnail = get_video_thumbnail() ) != null ) { echo "<img src='" . $video_thumbnail . "' />"; } ?>` will only display a thumbnail when one exists.
@@ -77,6 +81,9 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.6 =
+* Added support for custom post types
 
 = 1.5 =
 * Video thumbnails are now only saved when a post's status changes to published.
@@ -183,8 +190,7 @@ This version adds the thumbnail URL to the post's meta data, meaning any outside
 
 == Known Issues ==
 
-* "Scan for Video Thumbnails" button can cause errors and has been removed until it can be fixed.
-* Posts with thumbnails manually set are overwritten by thumbnails found by the plugin, a solution is to save the post then select a different thumbnail without saving the whole post again
+* Because the plugin politely removes its settings when being deactivated, settings may revert back to the defaults when upgrading the plugin automatically. I believe this is an issue that will be fixed in WordPress 3.1.
 
 == Roadmap ==
 
