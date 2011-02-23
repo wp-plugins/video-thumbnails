@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.6
+Version: 1.7
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -278,10 +278,14 @@ function video_thumbnail_admin(){
 
 // AJAX Searching
 
-add_action('admin_head', 'video_thumbnails_ajax');
+if ( in_array( basename($_SERVER['PHP_SELF']), apply_filters( 'video_thumbnails_editor_pages', array('post-new.php', 'page-new.php', 'post.php', 'page.php') ) ) ) {
+	add_action('admin_head', 'video_thumbnails_ajax');
+}
 
 function video_thumbnails_ajax() {
 ?>
+
+<!-- Video Thumbnails Researching Ajax -->
 <script type="text/javascript" >
 function video_thumbnails_reset(id) {
 
@@ -369,6 +373,92 @@ function video_thumbnails_curl_check(){
 	}
 }
 
+// AJAX for Past Posts
+
+if ( isset ( $_GET['page'] ) && ( $_GET['page'] == 'video-thumbnail-options' ) ) {
+	add_action('admin_head', 'video_thumbnails_past_ajax');
+}
+
+function video_thumbnails_past_ajax() {
+?>
+
+<!-- Video Thumbnails Past Post Ajax -->
+<script type="text/javascript" >
+function video_thumbnails_past(id) {
+
+	var data = {
+		action: 'video_thumbnails_past',
+		post_id: id
+	};
+
+	// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+	jQuery.post(ajaxurl, data, function(response) {
+
+
+		document.getElementById(id+'_result').innerHTML = response;
+
+	});
+
+};
+
+<?php
+$video_thumbnails_post_types = get_option('video_thumbnails_post_types');
+$posts = get_posts(array('showposts'=>-1,'post_type'=>$video_thumbnails_post_types));
+
+if ($posts) {
+	foreach($posts as $post) {
+	    $post_ids[] = $post->ID;
+	}
+	$ids = implode(',',$post_ids);
+}
+?>
+
+var scanComplete = false;
+
+function scan_video_thumbnails(){
+
+	if(scanComplete==false){
+		scanComplete = true;
+		var ids = new Array(<?php echo $ids; ?>);
+		for (var i = 0; i < ids.length; i++){
+			var container = document.getElementById('video-thumbnails-past');
+			var new_element = document.createElement('li');
+			new_element.setAttribute('id',ids[i]+'_result');
+			new_element.innerHTML = 'Waiting...';
+			container.insertBefore(new_element, container.firstChild);
+		}
+		for (var i = 0; i < ids.length; i++){
+			document.getElementById(ids[i]+'_result').innerHTML = '<span style="color:yellow">&#8226;</span> Working...';
+			video_thumbnails_past(ids[i]);
+		}
+	} else {
+		alert('Scan has already been run, please reload the page before trying again.')
+	}
+
+}
+</script>
+
+<?php
+}
+
+add_action('wp_ajax_video_thumbnails_past', 'video_thumbnails_past_callback');
+
+function video_thumbnails_past_callback() {
+	global $wpdb; // this is how you get access to the database
+
+	$post_id = $_POST['post_id'];
+
+	echo get_the_title($post_id) . ' - ';
+
+	if ( ($video_thumbnail=get_video_thumbnail($post_id)) != null ) {
+		echo '<span style="color:green">&#10004;</span> Success!';
+	} else {
+		echo '<span style="color:red">&#10006;</span> Couldn\'t find a video thumbnail for this post.';
+	}
+
+	die();
+}
+
 // Aministration
 
 add_action('admin_menu', 'video_thumbnails_menu');
@@ -442,7 +532,15 @@ function video_thumbnails_checkbox_option($option_name, $option_description) { ?
 	<input type="hidden" name="page_options" value="video_thumbnails_save_media,video_thumbnails_set_featured,video_thumbnails_post_types" />
 
 	</form>
+	
+	<h3>Scan All Posts</h3>
+	
+	<p>Scan all of your past posts for video thumbnails. Be sure to save any settings before running the scan.</p>
 
+	<p><input type="submit" class="button-primary" onclick="scan_video_thumbnails();" value="Scan Past Posts" /></p>
+
+	<ol id="video-thumbnails-past">
+	</ol>
 
 </div>
 
