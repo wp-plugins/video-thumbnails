@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.7
+Version: 1.7.2
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -54,6 +54,32 @@ function getJustintvInfo($id) {
 	$xml = simplexml_load_file("http://api.justin.tv/api/clip/show/$id.xml");
 	return (string) $xml->clip->image_url_large;
 }
+
+// Get DailyMotion Thumbnail
+function getDailyMotionThumbnail($id) {
+    if (!function_exists('curl_init')) {
+    	return null;
+    } else {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, "https://api.dailymotion.com/video/$id?fields=thumbnail_url");
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		$output = curl_exec($ch);
+		curl_close($ch);
+		$output = json_decode($output);
+		$output = $output->thumbnail_url;
+		return $output;
+    }
+};
+
+// Metacafe
+function getMetacafeThumbnail($id) {
+	$xml = simplexml_load_file("http://www.metacafe.com/api/item/$id/");
+    $result = $xml->xpath("/rss/channel/item/media:thumbnail/@url");
+    $thumbnail = (string) $result[0]['url'];
+    return $thumbnail;
+};
 
 // The Main Event
 function get_video_thumbnail($post_id=null) {
@@ -180,6 +206,37 @@ function get_video_thumbnail($post_id=null) {
 			if(isset($matches[1])) {
 				$justin_thumbnail = getJustintvInfo($matches[1]);
 				$new_thumbnail = $justin_thumbnail;
+			}
+		}
+		
+		// Dailymotion
+		if($new_thumbnail==null) {
+		
+			// Dailymotion flash
+			preg_match('#<object[^>]+>.+?http://www.dailymotion.com/swf/video/([A-Za-z0-9]+).+?</object>#s', $markup, $matches);
+			
+			// Dailymotion iframe
+			if(!isset($matches[1])) {
+				preg_match('#http://www.dailymotion.com/embed/video/([A-Za-z0-9]+)#s', $markup, $matches);
+			}
+
+			// Now if we've found a Dailymotion video ID, let's set the thumbnail URL
+			if(isset($matches[1])) {
+				$dailymotion_thumbnail = getDailyMotionThumbnail($matches[1]);
+				$new_thumbnail = strtok($dailymotion_thumbnail, '?');
+			}
+		}
+		
+		// Metacafe
+		if($new_thumbnail==null) {
+		
+			// Find ID from Metacafe embed url
+			preg_match('#http://www.metacafe.com/fplayer/([A-Za-z0-9\-_]+)/#s', $markup, $matches);
+
+			// Now if we've found a Metacafe video ID, let's set the thumbnail URL
+			if(isset($matches[1])) {
+				$metacafe_thumbnail = getMetacafeThumbnail($matches[1]);
+				$new_thumbnail = strtok($metacafe_thumbnail, '?');
 			}
 		}
 		
