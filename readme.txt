@@ -1,10 +1,10 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
 Donate link: http://amzn.com/w/1L25YG6FO8AZ1
-Tags: Video, Thumbnails, YouTube, Vimeo, Blip.tv, Justin.tv, Dailymotion, Metacafe
+Tags: Video, Thumbnails, YouTube, Vimeo, Blip.tv, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
 Requires at least: 3.0
 Tested up to: 3.1
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -83,6 +83,9 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.7.3 =
+* More comprehensive search for embedded YouTube videos
 
 = 1.7.2 =
 * Added support for Dailymotion and Metacafe
