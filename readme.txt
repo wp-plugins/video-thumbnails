@@ -3,8 +3,8 @@ Contributors: sutherlandboswell
 Donate link: http://amzn.com/w/1L25YG6FO8AZ1
 Tags: Video, Thumbnails, YouTube, Vimeo, Blip.tv, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
 Requires at least: 3.0
-Tested up to: 3.1
-Stable tag: 1.7.3
+Tested up to: 3.1.2
+Stable tag: 1.7.4
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -26,7 +26,7 @@ Video Thumbnails even works with most video embedding plugins, including:
 * [Viper's Video Quicktags](http://wordpress.org/extend/plugins/vipers-video-quicktags/)
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
-* [JR Embed](http://plugins.jakeruston.co.uk/wordpress/wordpress-plugin-jr-embed/)
+* [WP YouTube Lyte](http://wordpress.org/extend/plugins/wp-youtube-lyte/)
 
 Some functions are available to advanced users who want to customize their theme:
 
@@ -83,6 +83,11 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. The Video Thumbnail meta box on the Edit Post page
 
 == Changelog ==
+
+= 1.7.4 =
+* Fixed Dailymotion bug (thanks [Gee](http://wordpress.org/support/profile/geekxx))
+* Added detection for Dailymotion URLs (thanks [Gee](http://wordpress.org/support/profile/geekxx))
+* Added support for [WP YouTube Lyte](http://wordpress.org/extend/plugins/wp-youtube-lyte/)
 
 = 1.7.3 =
 * More comprehensive search for embedded YouTube videos

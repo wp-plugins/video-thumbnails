@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/2010/11/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, and Justin.tv.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.7.3
+Version: 1.7.4
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -64,6 +64,7 @@ function getDailyMotionThumbnail($id) {
 		curl_setopt($ch, CURLOPT_URL, "https://api.dailymotion.com/video/$id?fields=thumbnail_url");
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 		$output = curl_exec($ch);
 		curl_close($ch);
@@ -125,9 +126,9 @@ function get_video_thumbnail($post_id=null) {
 			preg_match('#http://w?w?w?.?youtube.com/watch\?v=([A-Za-z0-9\-_]+)#s', $markup, $matches);
 		}
 		
-		// If no standard YouTube embed is found, checks for one embedded with JR_embed
-		if(!isset($matches[1])) {
-			preg_match('#\[youtube id=([A-Za-z0-9\-_]+)]#s', $markup, $matches);
+		// Checks for YouTube Lyte
+		if(!isset($matches[1]) && function_exists('lyte_parse')) {
+			preg_match('#<div class="lyte" id="([A-Za-z0-9\-_]+)"#s', $markup, $matches);
 		}
 		
 		// If we've found a YouTube video ID, create the thumbnail URL
@@ -219,6 +220,11 @@ function get_video_thumbnail($post_id=null) {
 		
 			// Dailymotion flash
 			preg_match('#<object[^>]+>.+?http://www.dailymotion.com/swf/video/([A-Za-z0-9]+).+?</object>#s', $markup, $matches);
+			
+			// Dailymotion url
+			if(!isset($matches[1])) {
+				preg_match('#http://www.dailymotion.com/video/([A-Za-z0-9]+)#s', $markup, $matches);
+			}
 			
 			// Dailymotion iframe
 			if(!isset($matches[1])) {
