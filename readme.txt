@@ -44,6 +44,10 @@ Some functions are available to advanced users who want to customize their theme
 
 The most likely problem is that your theme doesn't support post thumbnails. If thumbnails are supported, you should see a box titled "Featured Image" on the edit post page. If thumbnails aren't supported, your theme will have to be modified to support Featured Images or to support one of our custom functions.
 
+= I'm using a custom field to store the video and it isn't working, is there a solution? =
+
+Yes, [this thread](http://wordpress.org/support/topic/plugin-video-thumbnails-cant-find-youtube-thumbnails) has a solution for searching a custom field instead of the post's main content.
+
 = Can I use the functions outside of a loop? =
 
 Yes, but be sure to include the post ID as a parameter. For example: `<?php $thumbnail = get_video_thumbnail(25); ?>`
