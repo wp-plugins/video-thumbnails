@@ -1,6 +1,6 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
-Donate link: http://amzn.com/w/1L25YG6FO8AZ1
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=sutherland%2eboswell%40gmail%2ecom&lc=US&item_name=Sutherland%20Boswell&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted
 Tags: Video, Thumbnails, YouTube, Vimeo, Blip.tv, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
 Requires at least: 3.0
 Tested up to: 3.1.2
