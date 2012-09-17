@@ -5,7 +5,7 @@ Plugin URI: http://sutherlandboswell.com/projects/wordpress-video-thumbnails/
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Blip.tv, Justin.tv, Dailymotion and Metacafe.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 1.8.1
+Version: 1.8.2
 License: GPL2
 */
 /*  Copyright 2010 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -96,9 +96,9 @@ function getMetacafeThumbnail( $id ) {
 	if ( $xml == false ) {
 		return new WP_Error( 'metacafe_info_retrieval', __( 'Error retrieving video information from the URL <a href="' . $videoinfo_url . '">' . $videoinfo_url . '</a>.<br /><a href="http://curl.haxx.se/libcurl/c/libcurl-errors.html">Libcurl error</a> ' . curl_errno( $ch ) . ': <code>' . curl_error( $ch ) . '</code>. If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.' ) );
 	} else {
-	$result = $xml->xpath( "/rss/channel/item/media:thumbnail/@url" );
-	$thumbnail = (string) $result[0]['url'];
-	return $thumbnail;
+		$result = $xml->xpath( "/rss/channel/item/media:thumbnail/@url" );
+		$thumbnail = (string) $result[0]['url'];
+		return $thumbnail;
 	}
 };
 
@@ -215,7 +215,7 @@ function get_video_thumbnail( $post_id = null ) {
 			if ( isset( $matches[1] ) ) {
 				$vimeo_thumbnail = getVimeoInfo( $matches[1], $info = 'thumbnail_large' );
 				if ( is_wp_error( $vimeo_thumbnail ) ) {
-				  return $vimeo_thumbnail;
+					return $vimeo_thumbnail;
 				} else if ( isset( $vimeo_thumbnail ) ) {
 					$new_thumbnail = $vimeo_thumbnail;
 				}
@@ -232,7 +232,7 @@ function get_video_thumbnail( $post_id = null ) {
 			if ( isset( $matches[1] ) ) {
 				$blip_thumbnail = getBliptvInfo( $matches[1] );
 				if ( is_wp_error( $blip_thumbnail ) ) {
-				  return $blip_thumbnail;
+					return $blip_thumbnail;
 				} else if ( isset( $blip_thumbnail ) ) {
 					$new_thumbnail = $blip_thumbnail;
 				}
@@ -272,7 +272,7 @@ function get_video_thumbnail( $post_id = null ) {
 			if ( isset( $matches[1] ) ) {
 				$dailymotion_thumbnail = getDailyMotionThumbnail( $matches[1] );
 			if ( is_wp_error( $dailymotion_thumbnail ) ) {
-				  return $dailymotion_thumbnail;
+					return $dailymotion_thumbnail;
 				} else if ( isset( $dailymotion_thumbnail ) ) {
 					$new_thumbnail = strtok( $dailymotion_thumbnail, '?' );
 				}
@@ -288,8 +288,8 @@ function get_video_thumbnail( $post_id = null ) {
 			// Now if we've found a Metacafe video ID, let's set the thumbnail URL
 			if ( isset( $matches[1] ) ) {
 				$metacafe_thumbnail = getMetacafeThumbnail( $matches[1] );
-			if ( is_wp_error( $metacafe_thumbnail ) ) {
-				  return $metacafe_thumbnail;
+				if ( is_wp_error( $metacafe_thumbnail ) ) {
+					return $metacafe_thumbnail;
 				} else if ( isset( $metacafe_thumbnail ) ) {
 					$new_thumbnail = strtok( $metacafe_thumbnail, '?' );
 				}
@@ -301,48 +301,35 @@ function get_video_thumbnail( $post_id = null ) {
 
 			// Save as Attachment if enabled
 			if ( get_option( 'video_thumbnails_save_media' ) == 1 ) {
-			  $error = '';
-				$ch = curl_init();
-				$timeout = 0;
-				curl_setopt ( $ch, CURLOPT_URL, $new_thumbnail );
-				curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt ( $ch, CURLOPT_CONNECTTIMEOUT, $timeout );
-				curl_setopt( $ch, CURLOPT_FAILONERROR, true ); // Return an error for curl_error() processing if HTTP response code >= 400
-				$image_contents = curl_exec( $ch );
-				if ( curl_error( $ch ) != null || $image_contents == null ) {
-					$curl_error = '';
-					if ( curl_error( $ch ) != null ) {
-						$curl_error = '<br /><a href="http://curl.haxx.se/libcurl/c/libcurl-errors.html">Libcurl error</a> ' . curl_errno( $ch ) . ': <code>' . curl_error( $ch ) . '</code>';
-					}
-				$error = new WP_Error( 'thumbnail_retrieval', __( 'Error retrieving a thumbnail from the URL <a href="' . $new_thumbnail . '">' . $new_thumbnail . '</a>' . $curl_error . '. If opening that URL in your web browser shows an image, the problem may be related to your web server and might be something your server administrator can solve.' ) );
-			}
-				curl_close( $ch );
 
-		if ( $error != null ) {
-			return $error;
-		} else {
+				$response = wp_remote_get( $new_thumbnail, array( 'sslverify' => false ) );
 
-			$upload = wp_upload_bits( basename( $new_thumbnail ), null, $image_contents );
+				// Check for error
+				if( is_wp_error( $response ) ) {
+					return new WP_Error( 'thumbnail_retrieval', __( 'Error retrieving a thumbnail from the URL <a href="' . $new_thumbnail . '">' . $new_thumbnail . '</a> If opening that URL in your web browser shows an image, the problem may be related to your web server and might be something your server administrator can solve. Error details: "' . $response->get_error_message() . '"' ) );
+				}
 
-			$new_thumbnail = $upload['url'];
+				$image_contents = wp_remote_retrieve_body( $response );
 
-			$filename = $upload['file'];
+				$upload = wp_upload_bits( basename( $new_thumbnail ), null, $image_contents );
 
-			$wp_filetype = wp_check_filetype( basename( $filename ), null );
-			$attachment = array(
-				'post_mime_type'	=> $wp_filetype['type'],
-				'post_title'		=> get_the_title($post_id),
-				'post_content'		=> '',
-				'post_status'		=> 'inherit'
-			);
-			$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
-			// you must first include the image.php file
-			// for the function wp_generate_attachment_metadata() to work
-			require_once( ABSPATH . 'wp-admin/includes/image.php' );
-			$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
-			wp_update_attachment_metadata( $attach_id,  $attach_data );
+				$new_thumbnail = $upload['url'];
 
-		}
+				$filename = $upload['file'];
+
+				$wp_filetype = wp_check_filetype( basename( $filename ), null );
+				$attachment = array(
+					'post_mime_type'	=> $wp_filetype['type'],
+					'post_title'		=> get_the_title($post_id),
+					'post_content'		=> '',
+					'post_status'		=> 'inherit'
+				);
+				$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+				// you must first include the image.php file
+				// for the function wp_generate_attachment_metadata() to work
+				require_once( ABSPATH . 'wp-admin/includes/image.php' );
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+				wp_update_attachment_metadata( $attach_id, $attach_data );
 			
 			}
 
@@ -350,8 +337,8 @@ function get_video_thumbnail( $post_id = null ) {
 			if ( !update_post_meta( $post_id, '_video_thumbnail', $new_thumbnail ) ) add_post_meta( $post_id, '_video_thumbnail', $new_thumbnail, true );
 
 			// Set attachment as featured image if enabled
-			if ( get_option( 'video_thumbnails_set_featured' ) == 1 && get_option( 'video_thumbnails_save_media' ) == 1 && get_post_meta( $post_id, '_thumbnail_id', true ) == '' ) {
-				if ( !update_post_meta( $post_id, '_thumbnail_id', $attach_id ) ) add_post_meta( $post_id, '_thumbnail_id', $attach_id, true );
+			if ( get_option( 'video_thumbnails_set_featured' ) == 1 && get_option( 'video_thumbnails_save_media' ) == 1 && !has_post_thumbnail( $post_id ) ) {
+				set_post_thumbnail( $post_id, $attach_id );
 			}
 		}
 		return $new_thumbnail;
@@ -444,7 +431,7 @@ function video_thumbnails_callback() {
 
 	if ( is_wp_error( $video_thumbnail ) ) {
 		echo $video_thumbnail->get_error_message();
-	} else  if ( $video_thumbnail != null ) {
+	} else if ( $video_thumbnail != null ) {
 		echo '<img src="' . $video_thumbnail . '" style="max-width:100%;" />';
 	} else {
 		echo 'We didn\'t find a video thumbnail for this post. (be sure you have saved changes first)';
@@ -459,6 +446,7 @@ add_action( 'new_to_publish', 'save_video_thumbnail', 10, 1 );
 add_action( 'draft_to_publish', 'save_video_thumbnail', 10, 1 );
 add_action( 'pending_to_publish', 'save_video_thumbnail', 10, 1 );
 add_action( 'future_to_publish', 'save_video_thumbnail', 10, 1 );
+add_action( 'private_to_publish', 'save_video_thumbnail', 10, 1 );
 
 // Finds thumbnail when posting from XML-RPC
 // (this action passes the post ID as an argument so 'get_video_thumbnail' is used instead)
@@ -593,7 +581,7 @@ function video_thumbnails_past_callback() {
 
 	if ( is_wp_error( $video_thumbnail ) ) {
 		echo $video_thumbnail->get_error_message();
-	} else  if ( $video_thumbnail != null ) {
+	} else if ( $video_thumbnail != null ) {
 		echo '<span style="color:green">&#10004;</span> Success!';
 	} else {
 		echo '<span style="color:red">&#10006;</span> Couldn\'t find a video thumbnail for this post.';
@@ -618,7 +606,7 @@ function video_thumbnails_checkbox_option( $option_name, $option_description ) {
 
 function video_thumbnail_options() {
 
-	if ( ! current_user_can( 'manage_options' ) )  {
+	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 
