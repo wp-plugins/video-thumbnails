@@ -3,8 +3,8 @@ Contributors: sutherlandboswell
 Donate link: http://wie.ly/u/donate
 Tags: Video, Thumbnails, YouTube, Vimeo, Blip, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
 Requires at least: 3.1
-Tested up to: 3.5.1
-Stable tag: 2.0.1
+Tested up to: 3.6
+Stable tag: 2.0.7
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -29,8 +29,9 @@ Video Thumbnails currently supports these video services:
 
 Video Thumbnails even works with most video embedding plugins, including:
 
-* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
+* [Refactored Video Importer](https://refactored.co/plugins/video-importer)
 * [Viper's Video Quicktags](http://wordpress.org/extend/plugins/vipers-video-quicktags/)
+* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 * [WP YouTube Lyte](http://wordpress.org/extend/plugins/wp-youtube-lyte/)
@@ -95,6 +96,26 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. Settings page
 
 == Changelog ==
+
+= 2.0.7 =
+* Fix for bug that prevented featured images from being set for posts imported by AYVP
+
+= 2.0.6 =
+* Fix for "Fatal error: Cannot use object of type WP_Error as array" bug
+
+= 2.0.5 =
+* Added support for Blip URLs
+
+= 2.0.4 =
+* Fixed bug with file names when the post title uses non-latin characters
+
+= 2.0.3 =
+* Fixed problem caused by YouTube removing http: or https: from their default embed code
+
+= 2.0.2 =
+* Added descriptive messages for errors during provider tests
+* Fix possible fatal error on activation when VimeoAPIException is already declared
+* Fix possible undefined index warnings for provider settings
 
 = 2.0.1 =
 * Added support for Facebook's iFrame player
