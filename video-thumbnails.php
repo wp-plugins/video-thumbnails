@@ -5,7 +5,7 @@ Plugin URI: http://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Facebook, Blip.tv, Justin.tv, Dailymotion, Metacafe, Wistia, Youku, Funny or Die, and MPORA.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.0.7
+Version: 2.0.8
 License: GPL2
 */
 /*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -28,7 +28,7 @@ License: GPL2
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.0.7' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.0.8' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -162,7 +162,7 @@ class Video_Thumbnails {
 				// Set attachment as featured image if enabled
 				if ( $this->settings->options['set_featured'] == 1 && $this->settings->options['save_media'] == 1 ) {
 					// Make sure there isn't already a post thumbnail
-					if ( intval( get_post_thumbnail_id( $post_id ) ) === 0 ) {
+					if ( !ctype_digit( get_post_thumbnail_id( $post_id ) ) ) {
 						set_post_thumbnail( $post_id, $attachment_id );
 					}
 				}
