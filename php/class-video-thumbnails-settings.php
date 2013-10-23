@@ -49,7 +49,9 @@ class Video_Thumbnails_Settings {
 		if ( isset ( $_GET['page'] ) && ( $_GET['page'] == 'video_thumbnails' ) ) {
 			// Admin scripts
 			add_action( 'admin_enqueue_scripts', array( &$this, 'admin_scripts' ) );
-			// Ajax past posts script
+		}
+		// Ajax past posts script
+		if ( isset ( $_GET['page'] ) && ( $_GET['page'] == 'video_thumbnails' ) && isset ( $_GET['tab'] ) && ( $_GET['tab'] == 'mass_actions' ) ) {
 			add_action( 'admin_head', array( &$this, 'ajax_past_script' ) );
 		}
 	}
@@ -159,17 +161,12 @@ function video_thumbnails_past(id) {
 
 };
 <?php
-$posts = get_posts( array(
+$id_array = get_posts( array(
 	'showposts' => -1,
-	'post_type' => $this->options['post_types']
+	'post_type' => $this->options['post_types'],
+	'fields' => 'ids'
 ) );
-
-if ( $posts ) {
-	foreach ( $posts as $post ) {
-		$post_ids[] = $post->ID;
-	}
-	$ids = implode( ', ', $post_ids );
-}
+$ids = implode( ', ', $id_array );
 ?>
 
 var scanComplete = false;
