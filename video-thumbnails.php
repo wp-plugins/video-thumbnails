@@ -5,7 +5,7 @@ Plugin URI: http://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Currently supports YouTube, Vimeo, Facebook, Blip.tv, Justin.tv, Dailymotion, Metacafe, Wistia, Youku, Funny or Die, and MPORA.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.0.10
+Version: 2.1
 License: GPL2
 */
 /*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -28,7 +28,7 @@ License: GPL2
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.0.10' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.1' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -107,6 +107,62 @@ class Video_Thumbnails {
 		}
 	}
 
+	/**
+	 * A usort() callback that sorts videos by offset
+	 */
+	function compare_by_offset( $a, $b ) {
+		return $a['offset'] - $b['offset'];
+	}
+
+	/**
+	 * Find all the videos in a post
+	 * @param  string $markup Markup to scan for videos
+	 * @return array          An array of video information
+	 */
+	function find_videos( $markup ) {
+
+		$videos = array();
+
+		// Filter to modify providers immediately before scanning
+		$providers = apply_filters( 'video_thumbnail_providers_pre_scan', $this->providers );
+
+		foreach ( $providers as $key => $provider ) {
+
+			$provider_videos = $provider->scan_for_videos( $markup );
+
+			if ( empty( $provider_videos ) ) continue;
+
+			foreach ( $provider_videos as $video ) {
+				$videos[] = array(
+					'id'       => $video[0],
+					'provider' => $key,
+					'offset'   => $video[1]
+				);
+			}
+
+		}
+
+		usort( $videos, array( &$this, 'compare_by_offset' ) );
+
+		return $videos;
+
+	}
+
+	/**
+	 * Finds the first video in markup and retrieves a thumbnail
+	 * @param  string $markup Post markup to scan
+	 * @return mixed          Null if no thumbnail or a string with a remote URL
+	 */
+	function get_first_thumbnail_url( $markup ) {
+		$thumbnail = null;
+		$videos = $this->find_videos( $markup );
+		foreach ( $videos as $video ) {
+			$thumbnail = $this->providers[$video['provider']]->get_thumbnail_url( $video['id'] );
+			if ( $thumbnail != null ) break;
+		}
+		return $thumbnail;
+	}
+
 	// The main event
 	function get_video_thumbnail( $post_id = null ) {
 
@@ -137,13 +193,7 @@ class Video_Thumbnails {
 				// Filter for extensions to modify what markup is scanned
 				$markup = apply_filters( 'video_thumbnail_markup', $markup, $post_id );
 
-				// Filter to modify providers immediately before scanning
-				$providers = apply_filters( 'video_thumbnail_providers_pre_scan', $this->providers );
-
-				foreach ( $providers as $key => $provider ) {
-					$new_thumbnail = $provider->scan_for_thumbnail( $markup );
-					if ( $new_thumbnail != null ) break;
-				}
+				$new_thumbnail = $this->get_first_thumbnail_url( $markup );
 			}
 
 			// Return the new thumbnail variable and update meta if one is found
