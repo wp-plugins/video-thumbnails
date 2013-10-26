@@ -57,7 +57,8 @@ class Video_Thumbnails_Providers {
 	}
 
 	function text_setting_callback( $args ) {
-		$html = '<input type="text" id="' . $args['slug'] . '" name="video_thumbnails[providers][' . $this->service_slug . '][' . $args['slug'] . ']" value="' . $this->options[$args['slug']] . '"/>';
+		$value = ( isset( $this->options[$args['slug']] ) ? $this->options[$args['slug']] : '' );
+		$html = '<input type="text" id="' . $args['slug'] . '" name="video_thumbnails[providers][' . $this->service_slug . '][' . $args['slug'] . ']" value="' . $value . '"/>';
 		$html .= '<label for="' . $args['slug'] . '"> ' . $args['description'] . '</label>';
 		echo $html;
 	}
@@ -68,6 +69,16 @@ class Video_Thumbnails_Providers {
 				return $this->get_thumbnail_url( $matches[1] );
 			}
 		}
+	}
+
+	public function scan_for_videos( $markup ) {
+		$videos = array();
+		foreach ( $this->regexes as $regex ) {
+			if ( preg_match_all( $regex, $markup, $matches, PREG_OFFSET_CAPTURE ) ) {
+				$videos = array_merge( $videos, $matches[1] );
+			}
+		}
+		return $videos;
 	}
 
 	// // Requires PHP 5.3.0+	
