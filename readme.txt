@@ -3,8 +3,8 @@ Contributors: sutherlandboswell
 Donate link: http://wie.ly/u/donate
 Tags: Video, Thumbnails, YouTube, Vimeo, Blip, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
 Requires at least: 3.1
-Tested up to: 3.5.1
-Stable tag: 2.0.1
+Tested up to: 3.8
+Stable tag: 2.2
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -26,11 +26,13 @@ Video Thumbnails currently supports these video services:
 * Wistia
 * Youku
 * CollegeHumor
+* Rutube
 
 Video Thumbnails even works with most video embedding plugins, including:
 
-* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
+* [Refactored Video Importer](https://refactored.co/plugins/video-importer)
 * [Viper's Video Quicktags](http://wordpress.org/extend/plugins/vipers-video-quicktags/)
+* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 * [WP YouTube Lyte](http://wordpress.org/extend/plugins/wp-youtube-lyte/)
@@ -95,6 +97,43 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. Settings page
 
 == Changelog ==
+
+= 2.2 =
+* Added support for Rutube
+
+= 2.1 =
+* Changes under the hood to ensure the first video is found
+* Improved YouTube regex
+
+= 2.0.10 =
+* Reduced overhead on settings pages
+
+= 2.0.9 =
+* Fixed Vimeo protocol-relative embeds
+* Fixed bug with PNG image types
+
+= 2.0.8 =
+* Better fix for AYVP featured image bug
+
+= 2.0.7 =
+* Fix for bug that prevented featured images from being set for posts imported by AYVP
+
+= 2.0.6 =
+* Fix for "Fatal error: Cannot use object of type WP_Error as array" bug
+
+= 2.0.5 =
+* Added support for Blip URLs
+
+= 2.0.4 =
+* Fixed bug with file names when the post title uses non-latin characters
+
+= 2.0.3 =
+* Fixed problem caused by YouTube removing http: or https: from their default embed code
+
+= 2.0.2 =
+* Added descriptive messages for errors during provider tests
+* Fix possible fatal error on activation when VimeoAPIException is already declared
+* Fix possible undefined index warnings for provider settings
 
 = 2.0.1 =
 * Added support for Facebook's iFrame player
@@ -263,6 +302,9 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.1 =
+Changes to the scanning process may affect any custom code you've developed for Video Thumbnails
 
 = 2.0 =
 Despite being a major upgrade, your settings should remain intact. Please report any problems so they can be fixed quickly!
