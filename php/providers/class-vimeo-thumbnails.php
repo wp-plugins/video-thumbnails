@@ -62,7 +62,7 @@ class Vimeo_Thumbnails extends Video_Thumbnails_Providers {
 	// Regex strings
 	public $regexes = array(
 	    '#<object[^>]+>.+?http://vimeo\.com/moogaloop.swf\?clip_id=([A-Za-z0-9\-_]+)&.+?</object>#s', // Standard Vimeo embed code
-	    '#http://player\.vimeo\.com/video/([0-9]+)#', // Vimeo iframe player
+	    '#(?:https?:)?//player\.vimeo\.com/video/([0-9]+)#', // Vimeo iframe player
 	    '#\[vimeo id=([A-Za-z0-9\-_]+)]#', // JR_embed shortcode
 	    '#\[vimeo clip_id="([A-Za-z0-9\-_]+)"[^>]*]#', // Another shortcode
 	    '#\[vimeo video_id="([A-Za-z0-9\-_]+)"[^>]*]#', // Yet another shortcode
@@ -72,8 +72,13 @@ class Vimeo_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
+        // Get our settings
+        $client_id = ( isset( $this->options['client_id'] ) && $this->options['client_id'] != '' ? $this->options['client_id'] : false );
+        $client_secret = ( isset( $this->options['client_secret'] ) && $this->options['client_secret'] != '' ? $this->options['client_secret'] : false );
+        $access_token = ( isset( $this->options['access_token'] ) && $this->options['access_token'] != '' ? $this->options['access_token'] : false );
+        $access_token_secret = ( isset( $this->options['access_token_secret'] ) && $this->options['access_token_secret'] != '' ? $this->options['access_token_secret'] : false );
 		// If API credentials are entered, use the API
-		if ( $this->options['client_id'] && $this->options['client_secret'] && $this->options['access_token'] && $this->options['access_token_secret'] ) {
+		if ( $client_id && $client_secret && $access_token && $access_token_secret ) {
 			$vimeo = new phpVimeo( $this->options['client_id'], $this->options['client_secret'] );
 			$vimeo->setToken( $this->options['access_token'], $this->options['access_token_secret'] );
 			$response = $vimeo->call('vimeo.videos.getThumbnailUrls', array('video_id'=>$id));
@@ -659,8 +664,10 @@ class phpVimeo
 
 }
 
-class VimeoAPIException extends Exception {}
-
 endif;
+
+if( !class_exists( 'VimeoAPIException' ) ) {
+    class VimeoAPIException extends Exception {}
+}
 
 ?>
