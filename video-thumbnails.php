@@ -5,7 +5,7 @@ Plugin URI: http://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.4
+Version: 2.4.1
 License: GPL2
 */
 /*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -28,7 +28,7 @@ License: GPL2
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.4' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.4.1' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -110,7 +110,7 @@ class Video_Thumbnails {
 
 	// Construct the meta box
 	function meta_box() {
-
+		global $post;
 		// Add hidden troubleshooting info
 		add_thickbox();
 		?>
@@ -128,8 +128,6 @@ class Video_Thumbnails {
 			</ol>
 		</div>
 		<?php
-
-		global $post;
 		$custom = get_post_custom( $post->ID );
 		if ( isset( $custom[VIDEO_THUMBNAILS_FIELD][0] ) ) $video_thumbnail = $custom[VIDEO_THUMBNAILS_FIELD][0];
 
@@ -284,6 +282,23 @@ class Video_Thumbnails {
 		}
 	}
 
+	/**
+	 * Creates a file name for use when saving an image to the media library.
+	 * It will either use a sanitized version of the title or the post ID.
+	 * @param  int    $post_id The ID of the post to create the filename for
+	 * @return string          A filename (without the extension)
+	 */
+	function construct_filename( $post_id ) {
+		$filename = get_the_title( $post_id );
+		$filename = sanitize_title( $filename, $post_id );
+		$filename = urldecode( $filename );
+		$filename = preg_replace( '/[^a-zA-Z0-9\-]/', '', $filename );
+		$filename = substr( $filename, 0, 32 );
+		$filename = trim( $filename, '-' );
+		if ( $filename == '' ) $filename = (string) $post_id;
+		return $filename;
+	}
+
 	// Saves to media library
 	public function save_to_media_library( $image_url, $post_id ) {
 
@@ -304,8 +319,8 @@ class Video_Thumbnails {
 			if ( $image_type == 'image/jpeg' ) $image_extension = '.jpg';
 			elseif ( $image_type == 'image/png' ) $image_extension = '.png';
 
-			// Construct a file name using post slug and extension
-			$new_filename = urldecode( basename( get_permalink( $post_id ) ) ) . $image_extension;
+			// Construct a file name with extension
+			$new_filename = $this->construct_filename( $post_id ) . $image_extension;
 
 			// Save the image bits using the new filename
 			$upload = wp_upload_bits( $new_filename, null, $image_contents );
