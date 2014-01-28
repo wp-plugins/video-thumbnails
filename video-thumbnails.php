@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Video Thumbnails
-Plugin URI: http://refactored.co/plugins/video-thumbnails
+Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.4.2
+Version: 2.5
 License: GPL2
 */
 /*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -28,7 +28,7 @@ License: GPL2
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.4.2' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.5' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -300,7 +300,7 @@ class Video_Thumbnails {
 	}
 
 	// Saves to media library
-	public function save_to_media_library( $image_url, $post_id ) {
+	public static function save_to_media_library( $image_url, $post_id ) {
 
 		$error = '';
 		$response = wp_remote_get( $image_url, array( 'sslverify' => false ) );
@@ -323,13 +323,17 @@ class Video_Thumbnails {
 			$new_filename = self::construct_filename( $post_id ) . $image_extension;
 
 			// Save the image bits using the new filename
+			do_action( 'video_thumbnails/pre_upload_bits', $image_contents );
 			$upload = wp_upload_bits( $new_filename, null, $image_contents );
+			do_action( 'video_thumbnails/after_upload_bits', $upload );
 
 			// Stop for any errors while saving the data or else continue adding the image to the media library
 			if ( $upload['error'] ) {
 				$error = new WP_Error( 'thumbnail_upload', __( 'Error uploading image data:' ) . ' ' . $upload['error'] );
 				return $error;
 			} else {
+
+				do_action( 'video_thumbnails/image_downloaded', $upload['file'] );
 
 				$image_url = $upload['url'];
 
@@ -399,11 +403,18 @@ class Video_Thumbnails {
 	}
 
 	function bulk_posts_query_callback() {
+		// Some default args
 		$args = array(
-			'showposts' => -1,
+			'posts_per_page' => -1,
 			'post_type' => $this->settings->options['post_types'],
 			'fields'    => 'ids'
 		);
+		// Setup an array for any form data and parse the jQuery serialized data
+		$form_data = array();
+		parse_str( $_POST['params'], $form_data );
+
+		$args = apply_filters( 'video_thumbnails/bulk_posts_query', $args, $form_data );
+
 		$query = new WP_Query( $args );
 		echo json_encode( $query->posts );
 		die();
@@ -450,7 +461,19 @@ class Video_Thumbnails {
 
 			<p>Use this tool to scan all of your posts for Video Thumbnails.</p>
 
-			<p><a id="video-thumbnails-scan-all-posts" href="#" class="button button-primary">Scan All Posts</a></p>
+			<form id="video-thumbnails-bulk-scan-options">
+				<table class="form-table">
+					<tbody>
+						<?php do_action( 'video_thumbnails/bulk_options_form'); ?>
+						<tr valign="top">
+							<th scope="row"><span id="queue-count">...</span></th>
+							<td>
+								<input type="submit" value="Scan Now" class="button button-primary">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
 
 			<div id="vt-bulk-scan-results">
 				<div class="progress-bar-container">
