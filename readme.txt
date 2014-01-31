@@ -1,10 +1,10 @@
 === Video Thumbnails ===
 Contributors: sutherlandboswell
 Donate link: http://wie.ly/u/donate
-Tags: Video, Thumbnails, YouTube, Vimeo, Blip, Justin.tv, Dailymotion, Metacafe, Image, Featured Image, Post Thumbnail
-Requires at least: 3.1
-Tested up to: 3.5.1
-Stable tag: 2.0.1
+Tags: Video, Thumbnails, YouTube, Vimeo, Vine, Twitch, Dailymotion, Youku, Rutube, Featured Image
+Requires at least: 3.2
+Tested up to: 3.8
+Stable tag: 2.5.1
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -12,28 +12,37 @@ Video Thumbnails simplifies the process of automatically displaying video thumbn
 
 Video Thumbnails makes it easy to automatically display video thumbnails in your template. When you publish a post, this plugin will find the first video embedded and locate the thumbnail for you. Thumbnails can be saved to your media library and set as a featured image automatically. There's even support for custom post types and custom fields!
 
+**New!** Get even more power with [Video Thumbnails Pro](https://refactored.co/plugins/video-thumbnails). Enjoy features like maximum image sizes, more powerful bulk scanning options, a customizable upload directory, and more!
+
 Video Thumbnails currently supports these video services:
 
 * YouTube
 * Vimeo
 * Facebook
-* Blip
+* Vine
 * Justin.tv
+* Twitch
 * Dailymotion
 * Metacafe
+* Blip
+* Google Drive
 * Funny or Die
+* CollegeHumor
 * MPORA
 * Wistia
 * Youku
-* CollegeHumor
+* Rutube
 
 Video Thumbnails even works with most video embedding plugins, including:
 
-* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
+* [Refactored Video Importer](https://refactored.co/plugins/video-importer)
 * [Viper's Video Quicktags](http://wordpress.org/extend/plugins/vipers-video-quicktags/)
+* [Automatic Youtube Video Posts Plugin](http://wordpress.org/extend/plugins/automatic-youtube-video-posts/)
 * [Simple Video Embedder](http://wordpress.org/extend/plugins/simple-video-embedder/)
 * [Vimeo Shortcode](http://blog.esimplestudios.com/2010/08/embedding-vimeo-videos-in-wordpress/)
 * [WP YouTube Lyte](http://wordpress.org/extend/plugins/wp-youtube-lyte/)
+
+Video Thumbnails will always be totally free while remaining a full-featured plugin, but if you'd like to support the developer consider purchasing [Video Thumbnails Pro](https://refactored.co/plugins/video-thumbnails). The pro version runs alongside the standard version and adds additional features like maximum image sizes, more powerful bulk scanning options, a customizable upload directory, and more!
 
 Some functions are available to advanced users who want to customize their theme:
 
@@ -46,6 +55,16 @@ Some functions are available to advanced users who want to customize their theme
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Frequently Asked Questions ==
+
+= No video thumbnail for this post =
+
+1. Ensure you have saved any changes to your post.
+1. If you are using a a plugin or theme that stores videos in a special location other than the main post content area, be sure you've entered the correct custom field on the settings page. If you don't know the name of the field your video is being saved in, please contact the developer of that theme or plugin.
+1. Copy and paste your embed code into the "Test Markup for Video" section of the Debugging page. If this doesn't find the thumbnail, you'll want to be sure to include the embed code you scanned when you request support. If it does find a thumbnail, please double check that you have the Custom Field set correctly in the settings page if you are using a a plugin or theme that stores videos in a special location.
+1. Go to the Debugging page and click "Test Image Downloading" to test your server's ability to save an image from a video source.
+1. Try posting a video from other sources to help narrow down the problem.
+1. Check the support threads to see if anyone has had the same issue.
+1. If you are still unable to resolve the problem, start a thread with a good descriptive title ("Error" or "No thumbnails" is a bad title) and be sure to include the results of your testing as well. Also be sure to include the name of your theme, any video plugins you're using, and any other details you can think of.
 
 = My theme isn't showing thumbnails, what's wrong? =
 
@@ -95,6 +114,71 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. Settings page
 
 == Changelog ==
+
+= 2.5.1 =
+* Fixed improper error handling
+
+= 2.5 =
+* Added support for [Video Thumbnails Pro](https://refactored.co/plugins/video-thumbnails), our new solution for power users and professional bloggers
+* Various bugfixes and improvements
+
+= 2.4.2 =
+* Fixed bug with image download test
+
+= 2.4.1 =
+* Added support for YouTube videos using LazyYT.js
+* Better Google Drive support
+* Filenames now have non-latin characters removed and use the post ID as a fallback
+* Fixed bug caused by internal server error during bulk scans
+* Improved performance of provider tests
+
+= 2.4 =
+* Added support for Vine
+* Added support for Google Drive videos
+* Rewritten bulk video thumbnail scanner
+* Added troubleshooting link in meta box when no video thumbnail is found
+* Changed provider test to compare file hashes in case thumbnail URLs change
+
+= 2.3 =
+* Added support for archived Twitch videos
+* Fixed issue with Funny or Die thumbnails
+
+= 2.2 =
+* Added support for Rutube
+
+= 2.1 =
+* Changes under the hood to ensure the first video is found
+* Improved YouTube regex
+
+= 2.0.10 =
+* Reduced overhead on settings pages
+
+= 2.0.9 =
+* Fixed Vimeo protocol-relative embeds
+* Fixed bug with PNG image types
+
+= 2.0.8 =
+* Better fix for AYVP featured image bug
+
+= 2.0.7 =
+* Fix for bug that prevented featured images from being set for posts imported by AYVP
+
+= 2.0.6 =
+* Fix for "Fatal error: Cannot use object of type WP_Error as array" bug
+
+= 2.0.5 =
+* Added support for Blip URLs
+
+= 2.0.4 =
+* Fixed bug with file names when the post title uses non-latin characters
+
+= 2.0.3 =
+* Fixed problem caused by YouTube removing http: or https: from their default embed code
+
+= 2.0.2 =
+* Added descriptive messages for errors during provider tests
+* Fix possible fatal error on activation when VimeoAPIException is already declared
+* Fix possible undefined index warnings for provider settings
 
 = 2.0.1 =
 * Added support for Facebook's iFrame player
@@ -263,6 +347,9 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.1 =
+Changes to the scanning process may affect any custom code you've developed for Video Thumbnails
 
 = 2.0 =
 Despite being a major upgrade, your settings should remain intact. Please report any problems so they can be fixed quickly!
