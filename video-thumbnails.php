@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.5.2
+Version: 2.5.3
 License: GPL2
 */
 /*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
@@ -28,7 +28,7 @@ License: GPL2
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.5.2' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.5.3' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -154,7 +154,7 @@ class Video_Thumbnails {
 			<li>Go to the <a href="<?php echo admin_url( 'options-general.php?page=video_thumbnails&tab=debugging' ); ?>">Debugging page</a> and click "Test Image Downloading" to test your server's ability to save an image from a video source.</li>
 			<li>Try posting a video from other sources to help narrow down the problem.</li>
 			<li>Search the <a href="http://wordpress.org/support/plugin/video-thumbnails">support threads</a> to see if anyone has had the same issue.</li>
-			<li>If you are still unable to resolve the problem, <a href="http://wordpress.org/support/plugin/video-thumbnails">start a thread</a> with a good descriptive title ("Error" or "No thumbnails" is a bad title) and be sure to include the results of your testing as well. Also be sure to include the name of your theme, any video plugins you're using, and any other details you can think of.</li>
+			<li>If you are still unable to resolve the problem, <a href="http://wordpress.org/support/plugin/video-thumbnails">start a thread</a> with a <strong>good descriptive</strong> title ("Error" or "No thumbnails" is a <strong>bad</strong> title) and be sure to include the results of your testing as well. Also be sure to include the <strong>name of your theme</strong>, any <strong>video plugins</strong> you're using, and any other details you can think of.</li>
 		</ol>
 		<?php
 	}
