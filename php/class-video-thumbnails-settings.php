@@ -37,9 +37,7 @@ class Video_Thumbnails_Settings {
 		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 		// Initialize options
 		add_action( 'admin_init', array( &$this, 'initialize_options' ) );
-		// Ajax past search callback
-		add_action( 'wp_ajax_past_video_thumbnail', array( &$this, 'ajax_past_callback' ) );
-		// Ajax past search callback
+		// Ajax clear all callback
 		add_action( 'wp_ajax_clear_all_video_thumbnails', array( &$this, 'ajax_clear_all_callback' ) );
 		// Ajax test callbacks
 		add_action( 'wp_ajax_video_thumbnail_provider_test', array( &$this, 'provider_test_callback' ) ); // Provider test
@@ -49,9 +47,9 @@ class Video_Thumbnails_Settings {
 		if ( isset ( $_GET['page'] ) && ( $_GET['page'] == 'video_thumbnails' ) ) {
 			// Admin scripts
 			add_action( 'admin_enqueue_scripts', array( &$this, 'admin_scripts' ) );
-			// Ajax past posts script
-			add_action( 'admin_head', array( &$this, 'ajax_past_script' ) );
 		}
+		// Add "Go Pro" call to action to settings footer
+		add_action( 'video_thumbnails/settings_footer', array( 'Video_Thumbnails_Settings', 'settings_footer' ) );
 	}
 
 	// Activation hook
@@ -139,86 +137,6 @@ class Video_Thumbnails_Settings {
 		wp_enqueue_script( 'video_thumbnails_clear', plugins_url( 'js/clear.js' , VIDEO_THUMBNAILS_PATH . '/video-thumbnails.php' ) );
 	}
 
-	function ajax_past_script() {
-
-?><!-- Video Thumbnails Past Post Ajax -->
-<script type="text/javascript">
-function video_thumbnails_past(id) {
-
-	var data = {
-		action: 'past_video_thumbnail',
-		post_id: id
-	};
-
-	// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-	jQuery.post(ajaxurl, data, function(response){
-
-		document.getElementById(id+'_result').innerHTML = response;
-
-	});
-
-};
-<?php
-$posts = get_posts( array(
-	'showposts' => -1,
-	'post_type' => $this->options['post_types']
-) );
-
-if ( $posts ) {
-	foreach ( $posts as $post ) {
-		$post_ids[] = $post->ID;
-	}
-	$ids = implode( ', ', $post_ids );
-}
-?>
-
-var scanComplete = false;
-
-function scan_video_thumbnails(){
-
-	if(scanComplete==false){
-		scanComplete = true;
-		var ids = new Array(<?php echo $ids; ?>);
-		for (var i = 0; i < ids.length; i++){
-			var container = document.getElementById('video-thumbnails-past');
-			var new_element = document.createElement('li');
-			new_element.setAttribute('id',ids[i]+'_result');
-			new_element.innerHTML = 'Waiting...';
-			container.insertBefore(new_element, container.firstChild);
-		}
-		for (var i = 0; i < ids.length; i++){
-			document.getElementById(ids[i]+'_result').innerHTML = '<span style="color:yellow">&#8226;</span> Working...';
-			video_thumbnails_past(ids[i]);
-		}
-	} else {
-		alert('Scan has already been run, please reload the page before trying again.')
-	}
-
-}
-</script><?php
-
-	}
-
-	function ajax_past_callback() {
-		global $wpdb; // this is how you get access to the database
-
-		$post_id = $_POST['post_id'];
-
-		echo get_the_title( $post_id ) . ' - ';
-
-		$video_thumbnail = get_video_thumbnail( $post_id );
-
-		if ( is_wp_error( $video_thumbnail ) ) {
-			echo $video_thumbnail->get_error_message();
-		} else if ( $video_thumbnail != null ) {
-			echo '<span style="color:green">&#10004;</span> Success!';
-		} else {
-			echo '<span style="color:red">&#10006;</span> Couldn\'t find a video thumbnail for this post.';
-		}
-
-		die();
-	}
-
 	function ajax_clear_all_callback() {
 		if ( wp_verify_nonce( $_POST['nonce'], 'clear_all_video_thumbnails' ) ) {
 			global $wpdb;
@@ -244,6 +162,16 @@ function scan_video_thumbnails(){
 		die();
 	}
 
+	function get_file_hash( $url ) {
+		$response = wp_remote_get( $url, array( 'sslverify' => false ) );
+		if( is_wp_error( $response ) ) {
+			$result = false;
+		} else {
+			$result = md5( $response['body'] );
+		}
+		return $result;
+	}
+
 	function provider_test_callback() {
 
 		global $video_thumbnails;
@@ -262,21 +190,44 @@ function scan_video_thumbnails(){
 			$passed = 0;
 			$failed = 0;
 			foreach ( $video_thumbnails->providers as $provider ) {
-				foreach ( $provider->test_cases as $test_case ) {				
-					$result = $provider->scan_for_thumbnail( $test_case['markup'] );
-					$result = explode( '?', $result );
-					$result = $result[0];
+				foreach ( $provider->test_cases as $test_case ) {
 					echo '<tr>';
 					echo '<td><strong>' . $provider->service_name . '</strong> - ' . $test_case['name'] . '</td>';
-					if ( $result == $test_case['expected'] ) {
-						echo '<td style="color:green;">&#10004; Passed</td>';
-						$passed++;
-					} else {
+					$result = $video_thumbnails->get_first_thumbnail_url( $test_case['markup'] );
+					if ( is_wp_error( $result ) ) {
+						$error_string = $result->get_error_message();
 						echo '<td style="color:red;">&#10007; Failed</td>';
+						echo '<td>';
+						echo '<div class="error"><p>' . $error_string . '</p></div>';
+						echo '</td>';
 						$failed++;
-						if ( is_wp_error( $result ) ) echo $result->get_error_message();
+					} else {
+						$result = explode( '?', $result );
+						$result = $result[0];
+						$result_hash = false;
+						if ( $result == $test_case['expected'] ) {
+							$matched = true;
+						} else {
+							$result_hash = $this->get_file_hash( $result );
+							$matched = ( $result_hash == $test_case['expected_hash'] ? true : false );
+						}
+						
+						if ( $matched ) {
+							echo '<td style="color:green;">&#10004; Passed</td>';
+							$passed++;
+						} else {
+							echo '<td style="color:red;">&#10007; Failed</td>';
+							$failed++;
+						}
+						echo '<td>';
+						if ( $result ) {
+							echo '<a href="' . $result . '">View Image</a>';
+						}
+						if ( $result_hash ) {
+							echo ' <code>' . $result_hash . '</code>';
+						}
+						echo '</td>';
 					}
-					echo '<td>' . $result . '</td>';
 					echo '</tr>';
 				}
 			} ?>
@@ -313,18 +264,30 @@ function scan_video_thumbnails(){
 
 		global $video_thumbnails;
 
-		foreach ( $video_thumbnails->providers as $provider ) {
-			$new_thumbnail = $provider->scan_for_thumbnail( stripslashes( $_POST['markup'] ) );
-			if ( $new_thumbnail != null ) break;
-		}
+		$new_thumbnail = $video_thumbnails->get_first_thumbnail_url( stripslashes( $_POST['markup'] ) );
 
 		if ( $new_thumbnail == null ) {
+			// No thumbnail
 			echo '<p><span style="color:red;">&#10006;</span> No thumbnail found</p>';
 		} elseif ( is_wp_error( $new_thumbnail ) ) {
+			// Error finding thumbnail
 			echo '<p><span style="color:red;">&#10006;</span> Error: ' . $new_thumbnail->get_error_message() . '</p>';
 		} else {
-			echo '<p><span style="color:green;">&#10004;</span> Thumbnail found! <a href="' . $new_thumbnail . '" target="_blank">View full size</a></p>';
-			echo '<p><img src="' . $new_thumbnail . '" style="max-width: 500px;"></p>';
+			// Found a thumbnail
+			$remote_response = wp_remote_head( $new_thumbnail );
+			if ( is_wp_error( $remote_response ) ) {
+				// WP Error trying to read image from remote server
+				echo '<p><span style="color:red;">&#10006;</span> Thumbnail found, but there was an error retrieving the URL.</p>';
+				echo '<p>Error Details: ' . $remote_response->get_error_message() . '</p>';
+			} elseif ( $remote_response['response']['code'] != '200' ) {
+				// Response code isn't okay
+				echo '<p><span style="color:red;">&#10006;</span> Thumbnail found, but it may not exist on the source server. If opening the URL below in your web browser returns an error, the source is providing an invalid URL.</p>';
+				echo '<p>Thumbnail URL: <a href="' . $new_thumbnail . '" target="_blank">' . $new_thumbnail . '</a>';
+			} else {
+				// Everything is okay!
+				echo '<p><span style="color:green;">&#10004;</span> Thumbnail found! Image should appear below. <a href="' . $new_thumbnail . '" target="_blank">View full size</a></p>';
+				echo '<p><img src="' . $new_thumbnail . '" style="max-width: 500px;"></p>';
+			}
 		}
 
 		die();
@@ -364,7 +327,7 @@ function scan_video_thumbnails(){
 		register_setting( 'video_thumbnails', 'video_thumbnails', array( &$this, 'sanitize_callback' ) );
 	}
 
-	function sanitize_callback( $input ) {   
+	function sanitize_callback( $input ) {
 		$current_settings = get_option( 'video_thumbnails' );
 		$output = array();
 		// General settings
@@ -475,6 +438,7 @@ function scan_video_thumbnails(){
 				<a href="?page=video_thumbnails&tab=provider_settings" class="nav-tab <?php echo $active_tab == 'provider_settings' ? 'nav-tab-active' : ''; ?>">Providers</a>
 				<a href="?page=video_thumbnails&tab=mass_actions" class="nav-tab <?php echo $active_tab == 'mass_actions' ? 'nav-tab-active' : ''; ?>">Mass Actions</a>
 				<a href="?page=video_thumbnails&tab=debugging" class="nav-tab <?php echo $active_tab == 'debugging' ? 'nav-tab-active' : ''; ?>">Debugging</a>
+				<a href="?page=video_thumbnails&tab=support" class="nav-tab <?php echo $active_tab == 'support' ? 'nav-tab-active' : ''; ?>">Support</a>
 			</h2>
 
 			<?php
@@ -517,10 +481,7 @@ function scan_video_thumbnails(){
 
 			<p>Scan all of your past posts for video thumbnails. Be sure to save any settings before running the scan.</p>
 
-			<p><input type="submit" class="button-primary" onclick="scan_video_thumbnails();" value="Scan Past Posts" /></p>
-
-			<ol id="video-thumbnails-past">
-			</ol>
+			<p><a class="button-primary" href="<?php echo admin_url( 'tools.php?page=video-thumbnails-bulk' ); ?>">Scan Past Posts</a></p>
 
 			<h3>Clear all Video Thumbnails</h3>
 
@@ -601,7 +562,7 @@ function scan_video_thumbnails(){
 						<td></td>
 					</tr>
 					<tr>
-						<td><strong>Active Providers</strong></td>
+						<td><strong>Providers</strong></td>
 						<td>
 							<?php global $video_thumbnails; ?>
 								<?php $provider_names = array(); foreach ( $video_thumbnails->providers as $provider ) { $provider_names[] = $provider->service_name; }; ?>
@@ -622,13 +583,29 @@ function scan_video_thumbnails(){
 			<?php
 			// End debugging
 			}
+			// Support
+			if ( $active_tab == 'support' ) {
+
+				Video_Thumbnails::no_video_thumbnail_troubleshooting_instructions();
+
+			// End support
+			}
 			?>
 
-			<div style="width: 250px; margin: 20px 0; padding: 0 20px; background: #f5f5f5; border: 1px solid #dfdfdf; text-align: center; -webkit-border-radius: 8px; -moz-border-radius: 8px; border-radius: 8px;">
-				<p>All donations are appreciated!<form action="https://www.paypal.com/cgi-bin/webscr" method="post"><input type="hidden" name="cmd" value="_s-xclick"><input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----"><input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1"></form></p>
-			</div>
+			<?php do_action( 'video_thumbnails/settings_footer' ); ?>
 
 		</div><?php
+	}
+
+	public static function settings_footer() {
+		?>
+		<div style="width: 250px; margin: 20px 0; padding: 0 20px; background: #fff; border: 1px solid #dfdfdf; text-align: center;">
+			<div>
+				<p>Support video thumbnails and unlock additional features</p>
+				<p><a href="https://refactored.co/plugins/video-thumbnails" class="button button-primary button-large">Go Pro</a></p>
+			</div>
+		</div>
+		<?php
 	}
 
 }
