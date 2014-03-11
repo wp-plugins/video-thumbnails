@@ -35,36 +35,43 @@ class Blip_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-	    '#http://blip\.tv/play/([^.]+)\.#' // Embed URL
+		'#(https?\:\/\/blip\.tv\/[^\r\n\'\"]+)#' // Blip URL
 	);
 
 	// Thumbnail URL
-	public function get_thumbnail_url( $id ) {
-		$request = "http://blip.tv/players/episode/$id?skin=rss";
+	public function get_thumbnail_url( $url ) {
+		$request = "http://blip.tv/oembed?url=$url";
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
-			$result = new WP_Error( 'blip_info_retrieval', __( 'Error retrieving video information from the URL <a href="' . $request . '">' . $request . '</a> using <code>wp_remote_get()</code><br />If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.<br />Details: ' . $response->get_error_message() ) );
+			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
-			$xml = new SimpleXMLElement( $response['body'] );
-			$result = $xml->xpath( "/rss/channel/item/media:thumbnail/@url" );
-			$result = (string) $result[0]['url'];
+			$json = json_decode( $response['body'] );
+			if ( isset( $json->error ) ) {
+				$result = new WP_Error( 'blip_invalid_url', sprintf( __( 'Error retrieving video information for <a href="%1$s">%1$s</a>. Check to be sure this is a valid Blip video URL.', 'video-thumbnails' ), $url ) );
+			} else {
+				$result = $json->thumbnail_url;
+			}
 		}
 		return $result;
 	}
 
 	// Test cases
-	public $test_cases = array(
-		array(
-			'markup' => '<iframe src="http://blip.tv/play/AYL1uFkC.html?p=1" width="780" height="438" frameborder="0" allowfullscreen></iframe><embed type="application/x-shockwave-flash" src="http://a.blip.tv/api.swf#AYL1uFkC" style="display:none"></embed>',
-			'expected' => 'http://a.images.blip.tv/ReelScience-TheScientificMethodOfOz139.jpg',
-			'name' => 'iFrame player'
-		),
-		array(
-			'markup' => '<iframe src="http://blip.tv/play/AYLz%2BEsC.html?p=1" width="780" height="438" frameborder="0" allowfullscreen></iframe><embed type="application/x-shockwave-flash" src="http://a.blip.tv/api.swf#AYLz+EsC" style="display:none"></embed>',
-			'expected' => 'http://a.images.blip.tv/GeekCrashCourse-TheAvengersMarvelMovieCatchUpGeekCrashCourse331.png',
-			'name' => 'iFrame player (special characters in ID)'
-		),
-	);
+	public static function get_test_cases() {
+		return array(
+			array(
+				'markup'        => 'http://blip.tv/cranetv/illustrator-katie-scott-6617917',
+				'expected'      => 'http://a.images.blip.tv/CraneTV-IllustratorKatieScott610.jpg',
+				'expected_hash' => '26a622f72bd4bdb3f8189f85598dd95d',
+				'name'          => __( 'Video URL', 'video-thumbnails' )
+			),
+			array(
+				'markup'        => '<iframe src="http://blip.tv/play/AYLz%2BEsC.html?p=1" width="780" height="438" frameborder="0" allowfullscreen></iframe><embed type="application/x-shockwave-flash" src="http://a.blip.tv/api.swf#AYLz+EsC" style="display:none"></embed>',
+				'expected'      => 'http://a.images.blip.tv/GeekCrashCourse-TheAvengersMarvelMovieCatchUpGeekCrashCourse331.png',
+				'expected_hash' => '87efa9f6b0d9111b0826ae4fbdddec1b',
+				'name'          => __( 'iFrame Embed', 'video-thumbnails' )
+			),
+		);
+	}
 
 }
 

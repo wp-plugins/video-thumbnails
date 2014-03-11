@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -57,7 +57,8 @@ class Video_Thumbnails_Providers {
 	}
 
 	function text_setting_callback( $args ) {
-		$html = '<input type="text" id="' . $args['slug'] . '" name="video_thumbnails[providers][' . $this->service_slug . '][' . $args['slug'] . ']" value="' . $this->options[$args['slug']] . '"/>';
+		$value = ( isset( $this->options[$args['slug']] ) ? $this->options[$args['slug']] : '' );
+		$html = '<input type="text" id="' . $args['slug'] . '" name="video_thumbnails[providers][' . $this->service_slug . '][' . $args['slug'] . ']" value="' . $value . '"/>';
 		$html .= '<label for="' . $args['slug'] . '"> ' . $args['description'] . '</label>';
 		echo $html;
 	}
@@ -68,6 +69,28 @@ class Video_Thumbnails_Providers {
 				return $this->get_thumbnail_url( $matches[1] );
 			}
 		}
+	}
+
+	public function scan_for_videos( $markup ) {
+		$videos = array();
+		foreach ( $this->regexes as $regex ) {
+			if ( preg_match_all( $regex, $markup, $matches, PREG_OFFSET_CAPTURE ) ) {
+				$videos = array_merge( $videos, $matches[1] );
+			}
+		}
+		return $videos;
+	}
+
+	/**
+	 * Constructs a WP_Error object after failed API retrieval
+	 * @param  string   $request  The URL wp_remote_get() failed to retrieve
+	 * @param  WP_Error $response A WP_Error object returned by the failed wp_remote_get()
+	 * @return WP_Error           An error object with a descriptive message including troubleshooting instructions
+	 */
+	function construct_info_retrieval_error( $request, $response ) {
+		$code = $this->service_slug . '_info_retrieval';
+		$message = sprintf( __( 'Error retrieving video information from the URL <a href="%1$s">%1$s</a> using <code>wp_remote_get()</code><br />If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.', 'video-thumbnails' ), $request ) . '<br />' . __( 'Error Details:', 'video-thumbnails' ) . ' ' . $response->get_error_message();
+		return new WP_Error( $code, $message );
 	}
 
 	// // Requires PHP 5.3.0+	
@@ -81,15 +104,20 @@ class Video_Thumbnails_Providers {
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-youtube-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vimeo-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-facebook-thumbnails.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vine-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-blip-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-justintv-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-dailymotion-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-metacafe-thumbnails.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vk-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-funnyordie-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-mpora-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-wistia-thumbnails.php' );
 // require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-kaltura-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-youku-thumbnails.php' );
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-collegehumor-thumbnails.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-rutube-thumbnails.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-twitch-thumbnails.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-googledrive-thumbnails.php' );
 
 ?>

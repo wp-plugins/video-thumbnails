@@ -35,19 +35,18 @@ class YouTube_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-	    '#<object[^>]+>.+?https?://www\.youtube(?:\-nocookie)?\.com/[ve]/([A-Za-z0-9\-_]+).+?</object>#s', // Old standard YouTube embed
-	    '#https?://www\.youtube(?:\-nocookie)?\.com/[ve]/([A-Za-z0-9\-_]+)#', // More comprehensive search for old YouTube embed (probably can be removed)
-	    '#https?://www\.youtube(?:\-nocookie)?\.com/embed/([A-Za-z0-9\-_]+)#', // YouTube iframe, the new standard since at least 2011
-	    '#(?:https?(?:a|vh?)?://)?(?:www\.)?youtube(?:\-nocookie)?\.com/watch\?.*v=([A-Za-z0-9\-_]+)#', // Any YouTube URL. After http(s) support a or v for Youtube Lyte and v or vh for Smart Youtube plugin
-	    '#(?:https?(?:a|vh?)?://)?youtu\.be/([A-Za-z0-9\-_]+)#', // Any shortened youtu.be URL. After http(s) a or v for Youtube Lyte and v or vh for Smart Youtube plugin
-	    '#<div class="lyte" id="([A-Za-z0-9\-_]+)"#' // YouTube Lyte
+		'#(?:https?:)?//www\.youtube(?:\-nocookie)?\.com/(?:v|e|embed)/([A-Za-z0-9\-_]+)#', // Comprehensive search for both iFrame and old school embeds
+		'#(?:https?(?:a|vh?)?://)?(?:www\.)?youtube(?:\-nocookie)?\.com/watch\?.*v=([A-Za-z0-9\-_]+)#', // Any YouTube URL. After http(s) support a or v for Youtube Lyte and v or vh for Smart Youtube plugin
+		'#(?:https?(?:a|vh?)?://)?youtu\.be/([A-Za-z0-9\-_]+)#', // Any shortened youtu.be URL. After http(s) a or v for Youtube Lyte and v or vh for Smart Youtube plugin
+		'#<div class="lyte" id="([A-Za-z0-9\-_]+)"#', // YouTube Lyte
+		'#data-youtube-id="([A-Za-z0-9\-_]+)"#' // LazyYT.js
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
 		$maxres = 'http://img.youtube.com/vi/' . $id . '/maxresdefault.jpg';
 		$response = wp_remote_head( $maxres );
-		if ( $response['response']['code'] == '200' ) {
+		if ( !is_wp_error( $response ) && $response['response']['code'] == '200' ) {
 			$result = $maxres;
 		} else {
 			$result = 'http://img.youtube.com/vi/' . $id . '/0.jpg';
@@ -56,28 +55,34 @@ class YouTube_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 	// Test cases
-	public $test_cases = array(
-		array(
-			'markup' => '<iframe width="560" height="315" src="http://www.youtube.com/embed/Fp0U2Vglkjw" frameborder="0" allowfullscreen></iframe>',
-			'expected' => 'http://img.youtube.com/vi/Fp0U2Vglkjw/maxresdefault.jpg',
-			'name' => 'iFrame HD'
-		),
-		array(
-			'markup' => '<object width="560" height="315"><param name="movie" value="http://www.youtube.com/v/Fp0U2Vglkjw?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Fp0U2Vglkjw?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="560" height="315" allowscriptaccess="always" allowfullscreen="true"></embed></object>',
-			'expected' => 'http://img.youtube.com/vi/Fp0U2Vglkjw/maxresdefault.jpg',
-			'name' => 'Old embed HD'
-		),
-		array(
-			'markup' => '<iframe width="560" height="315" src="http://www.youtube.com/embed/vv_AitYPjtc" frameborder="0" allowfullscreen></iframe>',
-			'expected' => 'http://img.youtube.com/vi/vv_AitYPjtc/0.jpg',
-			'name' => 'iFrame SD'
-		),
-		array(
-			'markup' => '<object width="560" height="315"><param name="movie" value="http://www.youtube.com/v/vv_AitYPjtc?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/vv_AitYPjtc?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="560" height="315" allowscriptaccess="always" allowfullscreen="true"></embed></object>',
-			'expected' => 'http://img.youtube.com/vi/vv_AitYPjtc/0.jpg',
-			'name' => 'Old embed SD'
-		),
-	);
+	public static function get_test_cases() {
+		return array(
+			array(
+				'markup'        => '<iframe width="560" height="315" src="http://www.youtube.com/embed/Fp0U2Vglkjw" frameborder="0" allowfullscreen></iframe>',
+				'expected'      => 'http://img.youtube.com/vi/Fp0U2Vglkjw/maxresdefault.jpg',
+				'expected_hash' => 'c66256332969c38790c2b9f26f725e7a',
+				'name'          => __( 'iFrame Embed HD', 'video-thumbnails' )
+			),
+			array(
+				'markup'        => '<object width="560" height="315"><param name="movie" value="http://www.youtube.com/v/Fp0U2Vglkjw?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Fp0U2Vglkjw?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="560" height="315" allowscriptaccess="always" allowfullscreen="true"></embed></object>',
+				'expected'      => 'http://img.youtube.com/vi/Fp0U2Vglkjw/maxresdefault.jpg',
+				'expected_hash' => 'c66256332969c38790c2b9f26f725e7a',
+				'name'          => __( 'Flash Embed HD', 'video-thumbnails' )
+			),
+			array(
+				'markup'        => '<iframe width="560" height="315" src="http://www.youtube.com/embed/vv_AitYPjtc" frameborder="0" allowfullscreen></iframe>',
+				'expected'      => 'http://img.youtube.com/vi/vv_AitYPjtc/0.jpg',
+				'expected_hash' => '6c00b9ab335a6ea00b0fb964c39a6dc9',
+				'name'          => __( 'iFrame Embed SD', 'video-thumbnails' )
+			),
+			array(
+				'markup'        => '<object width="560" height="315"><param name="movie" value="http://www.youtube.com/v/vv_AitYPjtc?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/vv_AitYPjtc?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="560" height="315" allowscriptaccess="always" allowfullscreen="true"></embed></object>',
+				'expected'      => 'http://img.youtube.com/vi/vv_AitYPjtc/0.jpg',
+				'expected_hash' => '6c00b9ab335a6ea00b0fb964c39a6dc9',
+				'name'          => __( 'Flash Embed SD', 'video-thumbnails' )
+			),
+		);
+	}
 
 }
 

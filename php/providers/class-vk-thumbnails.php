@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -19,14 +19,14 @@
 // Require thumbnail provider class
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
 
-class Justintv_Thumbnails extends Video_Thumbnails_Providers {
+class VK_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Human-readable name of the video provider
-	public $service_name = 'Justin.tv';
-	const service_name = 'Justin.tv';
+	public $service_name = 'VK';
+	const service_name = 'VK';
 	// Slug for the video provider
-	public $service_slug = 'justintv';
-	const service_slug = 'justintv';
+	public $service_slug = 'vk';
+	const service_slug = 'vk';
 
 	public static function register_provider( $providers ) {
 		$providers[self::service_slug] = new self;
@@ -35,18 +35,26 @@ class Justintv_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-	    '#archive_id=([0-9]+)#' // Archive ID
+		'#(//(?:www\.)?vk\.com/video_ext\.php\?oid=\-?[0-9]+&id=\-?[0-9]+&hash=[0-9a-zA-Z]+)#', // URL
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
-		$request = "http://api.justin.tv/api/clip/show/$id.xml";
+		$request = "http:$id";
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
-			$xml = new SimpleXMLElement( $response['body'] );
-			$result = (string) $xml->object->image_url_large;
+			$doc = new DOMDocument();
+			@$doc->loadHTML( $response['body'] );
+			$metas = $doc->getElementsByTagName( 'img' );
+			for ( $i = 0; $i < $metas->length; $i++ ) {
+				$meta = $metas->item( $i );
+				if ( $meta->getAttribute( 'id' ) == 'player_thumb' ) {
+					$result = $meta->getAttribute( 'src' );
+					break;
+				}
+			}
 		}
 		return $result;
 	}
@@ -55,10 +63,10 @@ class Justintv_Thumbnails extends Video_Thumbnails_Providers {
 	public static function get_test_cases() {
 		return array(
 			array(
-				'markup'        => '<object type="application/x-shockwave-flash" height="300" width="400" id="clip_embed_player_flash" data="http://www-cdn.justin.tv/widgets/archive_embed_player.swf" bgcolor="#000000"><param name="movie" value="http://www-cdn.justin.tv/widgets/archive_embed_player.swf" /><param name="allowScriptAccess" value="always" /><param name="allowNetworking" value="all" /><param name="allowFullScreen" value="true" /><param name="flashvars" value="auto_play=false&start_volume=25&title=Title&channel=scamschoolbrian&archive_id=392481524" /></object>',
-				'expected'      => 'http://static-cdn.jtvnw.net/jtv.thumbs/archive-392481524-320x240.jpg',
-				'expected_hash' => '7f260a2ce6ae75a3c2e5012108f161b7',
-				'name'          => __( 'Flash Embed', 'video-thumbnails' )
+				'markup'        => '<iframe src="http://vk.com/video_ext.php?oid=157000410&id=164106383&hash=0fdb5f49218be7c2&hd=1" width="607" height="360" frameborder="0"></iframe>',
+				'expected'      => 'http://cs513416.vk.me/u157000410/video/l_73b292cc.jpg',
+				'expected_hash' => '6d4b086ff1a55c9b48f56bc7848e6c84',
+				'name'          => __( 'iFrame Embed', 'video-thumbnails' )
 			),
 		);
 	}
@@ -66,6 +74,6 @@ class Justintv_Thumbnails extends Video_Thumbnails_Providers {
 }
 
 // Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Justintv_Thumbnails', 'register_provider' ) );
+add_filter( 'video_thumbnail_providers', array( 'VK_Thumbnails', 'register_provider' ) );
 
 ?>
