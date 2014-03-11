@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.6.3
+Version: 2.7
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
@@ -30,7 +30,7 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.6.3' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.7' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -49,6 +49,9 @@ class Video_Thumbnails {
 	var $settings;
 
 	function __construct() {
+
+		// Load translations
+		add_action( 'plugins_loaded', array( &$this, 'plugin_textdomain' ));
 
 		// Create provider array
 		$this->providers = apply_filters( 'video_thumbnail_providers', $this->providers );
@@ -84,6 +87,13 @@ class Video_Thumbnails {
 		// Get the thumbnail for an individual post
 		add_action('wp_ajax_video_thumbnails_get_thumbnail_for_post', array( &$this, 'get_thumbnail_for_post_callback' ) );
 
+	}
+
+	/**
+	 * Load language files
+	 */
+	function plugin_textdomain() {
+		load_plugin_textdomain( 'video-thumbnails', false, VIDEO_THUMBNAILS_PATH . '/languages/' );
 	}
 
 	/**
