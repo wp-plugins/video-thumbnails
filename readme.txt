@@ -3,8 +3,8 @@ Contributors: sutherlandboswell
 Donate link: http://wie.ly/u/donate
 Tags: Video, Thumbnails, YouTube, Vimeo, Vine, Twitch, Dailymotion, Youku, Rutube, Featured Image
 Requires at least: 3.2
-Tested up to: 3.8.1
-Stable tag: 2.6.3
+Tested up to: 3.8.2
+Stable tag: 2.7.3
 
 Video Thumbnails simplifies the process of automatically displaying video thumbnails in your WordPress template.
 
@@ -12,7 +12,7 @@ Video Thumbnails simplifies the process of automatically displaying video thumbn
 
 Video Thumbnails makes it easy to automatically display video thumbnails in your template. When you publish a post, this plugin will find the first video embedded and locate the thumbnail for you. Thumbnails can be saved to your media library and set as a featured image automatically. There's even support for custom post types and custom fields!
 
-**New!** [Video Thumbnails Pro](https://refactored.co/plugins/video-thumbnails) gives you even more power. Enjoy features like maximum image sizes, more powerful bulk scanning options, a customizable upload directory, and more!
+**New!** [Video Thumbnails Pro](https://refactored.co/plugins/video-thumbnails) gives you even more power. Enjoy features like maximum image sizes, widescreen cropping, more powerful bulk scanning options, a customizable upload directory, and more!
 
 Video Thumbnails currently supports these video services:
 
@@ -65,6 +65,10 @@ Some functions are available to advanced users who want to customize their theme
 1. Check the support threads to see if anyone has had the same issue.
 1. If you are still unable to resolve the problem, start a thread with a good descriptive title ("Error" or "No thumbnails" is a bad title) and be sure to include the results of your testing as well. Also be sure to include the name of your theme, any video plugins you're using, and any other details you can think of.
 
+= Why are there black bars on some YouTube thumbnails? =
+
+Video Thumbnails uses high-resolution widescreen thumbnails whenever they are available. If a video is not in HD, a fullscreen thumbnail is used. This can result in letterboxing when the video is actually widescreen. Users of the [pro version](https://refactored.co/plugins/video-thumbnails) can select an aspect ratio in the settings if this is a constant problem. [More info](https://refactored.co/blog/remove-black-bars-youtube-thumbnails).
+
 = Can I get thumbnails from a specific time? =
 
 No, Video Thumbnails only uses thumbnails provided by the source. If you're posting videos from your own account, many providers allow you to choose the thumbnail.
@@ -103,10 +107,6 @@ As an alternative you could assign a class to the element and style it with CSS.
 
 Every theme is different, so this can be tricky if you aren't familiar with WordPress theme development. You need to edit your template in the appropriate place, replacing `<?php the_content(); >` with `<?php the_excerpt(); >` so that only an excerpt of the post is shown on the home page or wherever you would like to display the video thumbnail.
 
-= Why are there black bars on some YouTube thumbnails? =
-
-This is an unfortunate side effect of some old YouTube videos not having widescreen thumbnails. As of version 2.0, the plugin checks for HD thumbnails so this issue should be less common.
-
 = Why did it stop finding thumbnails for Vimeo? =
 
 The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try again after a few hours.
@@ -117,6 +117,20 @@ The Vimeo API has a rate limit, so in rare cases you may exceed this limit. Try 
 1. Settings page
 
 == Changelog ==
+
+= 2.7.3 =
+* Improved image download test
+* Updated Vimeo and VK tests
+
+= 2.7.2 =
+* Added support for Youku iFrame embed code
+* Fixed Vimeo channel URL test
+
+= 2.7.1 =
+* Fixed load_plugin_textdomain() path
+
+= 2.7 =
+* Video Thumbnails is now translation ready and looking for volunteers
 
 = 2.6.3 =
 * Better Google Drive detection (added support for underscores or dashes in the ID)
