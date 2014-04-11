@@ -170,6 +170,7 @@ class Video_Thumbnails_Settings {
 	}
 
 	function ajax_clear_all_callback() {
+		if ( !current_user_can( 'manage_options' ) ) die();
 		if ( wp_verify_nonce( $_POST['nonce'], 'clear_all_video_thumbnails' ) ) {
 			global $wpdb;
 			// Clear images from media library
@@ -206,6 +207,8 @@ class Video_Thumbnails_Settings {
 
 	function provider_test_callback() {
 
+		if ( !current_user_can( 'manage_options' ) ) die();
+
 		global $video_thumbnails;
 
 		?>
@@ -225,7 +228,8 @@ class Video_Thumbnails_Settings {
 				foreach ( $provider->get_test_cases() as $test_case ) {
 					echo '<tr>';
 					echo '<td><strong>' . $provider->service_name . '</strong> - ' . $test_case['name'] . '</td>';
-					$result = $video_thumbnails->get_first_thumbnail_url( $test_case['markup'] );
+					$markup = apply_filters( 'the_content', $test_case['markup'] );
+					$result = $video_thumbnails->get_first_thumbnail_url( $markup );
 					if ( is_wp_error( $result ) ) {
 						$error_string = $result->get_error_message();
 						echo '<td style="color:red;">&#10007; ' . __( 'Failed', 'video-thumbnails' ) . '</td>';
@@ -277,6 +281,8 @@ class Video_Thumbnails_Settings {
 
 	function image_download_test_callback() {
 
+		if ( !current_user_can( 'manage_options' ) ) die();
+
 		// Try saving 'http://img.youtube.com/vi/dMH0bHeiRNg/0.jpg' to media library
 		$attachment_id = Video_Thumbnails::save_to_media_library( 'http://img.youtube.com/vi/dMH0bHeiRNg/0.jpg', 1 );
 		if ( is_wp_error( $attachment_id ) ) {
@@ -295,6 +301,9 @@ class Video_Thumbnails_Settings {
 	} // End saving media test callback
 
 	function delete_test_images_callback() {
+
+		if ( !current_user_can( 'manage_options' ) ) die();
+
 		global $wpdb;
 		// Clear images from media library
 		$media_library_items = get_posts( array(
@@ -314,11 +323,15 @@ class Video_Thumbnails_Settings {
 
 	function markup_detection_test_callback() {
 
+		if ( !current_user_can( 'manage_options' ) ) die();
+
 		$new_thumbnail = null;
 
 		global $video_thumbnails;
 
-		$new_thumbnail = $video_thumbnails->get_first_thumbnail_url( stripslashes( $_POST['markup'] ) );
+		$markup = apply_filters( 'the_content', stripslashes( $_POST['markup'] ) );
+
+		$new_thumbnail = $video_thumbnails->get_first_thumbnail_url( $markup );
 
 		if ( $new_thumbnail == null ) {
 			// No thumbnail
