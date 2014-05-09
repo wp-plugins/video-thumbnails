@@ -36,12 +36,12 @@ class Dailymotion_Thumbnails extends Video_Thumbnails_Providers {
 	// Regex strings
 	public $regexes = array(
 		'#<object[^>]+>.+?http://www\.dailymotion\.com/swf/video/([A-Za-z0-9]+).+?</object>#s', // Dailymotion flash
-		'#https?://www\.dailymotion\.com/embed/video/([A-Za-z0-9]+)#', // Dailymotion iframe
+		'#//www\.dailymotion\.com/embed/video/([A-Za-z0-9]+)#', // Dailymotion iframe
 		'#(?:https?://)?(?:www\.)?dailymotion\.com/video/([A-Za-z0-9]+)#' // Dailymotion URL
 	);
 
 	// Thumbnail URL
-	public function get_thumbnail_url( $id ) {
+	public static function get_thumbnail_url( $id ) {
 		$request = "https://api.dailymotion.com/video/$id?fields=thumbnail_url";
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
