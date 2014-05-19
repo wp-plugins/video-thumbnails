@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.7.8
+Version: 2.7.9
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
@@ -30,7 +30,7 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.7.8' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.7.9' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
@@ -383,22 +383,28 @@ class Video_Thumbnails {
 
 				do_action( 'video_thumbnails/image_downloaded', $upload['file'] );
 
-				$image_url = $upload['url'];
+				$wp_filetype = wp_check_filetype( basename( $upload['file'] ), null );
 
-				$filename = $upload['file'];
+				$upload = apply_filters( 'wp_handle_upload', array(
+					'file' => $upload['file'],
+					'url'  => $upload['url'],
+					'type' => $wp_filetype['type']
+				), 'sideload' );
 
-				$wp_filetype = wp_check_filetype( basename( $filename ), null );
+				// Contstruct the attachment array
 				$attachment = array(
-					'post_mime_type'	=> $wp_filetype['type'],
+					'post_mime_type'	=> $upload['type'],
 					'post_title'		=> get_the_title( $post_id ),
 					'post_content'		=> '',
 					'post_status'		=> 'inherit'
 				);
-				$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+				// Insert the attachment
+				$attach_id = wp_insert_attachment( $attachment, $upload['file'], $post_id );
+
 				// you must first include the image.php file
 				// for the function wp_generate_attachment_metadata() to work
 				require_once( ABSPATH . 'wp-admin/includes/image.php' );
-				$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
 				wp_update_attachment_metadata( $attach_id, $attach_data );
 
 				// Add field to mark image as a video thumbnail
