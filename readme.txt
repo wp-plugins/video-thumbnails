@@ -43,7 +43,6 @@ Video Thumbnails even works with most video plugins, including:
 
 * [Refactored Video Importer](https://refactored.co/plugins/video-importer)
 * Viper's Video Quicktags
-* WP YouTube Lyte
 
 = Help Translate =
 
