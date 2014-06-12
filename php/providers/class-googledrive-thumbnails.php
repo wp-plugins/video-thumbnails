@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class GoogleDrive_Thumbnails extends Video_Thumbnails_Providers {
+class Googledrive_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Google Drive';
@@ -103,8 +103,5 @@ class GoogleDrive_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'GoogleDrive_Thumbnails', 'register_provider' ) );
 
 ?>
