@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Rutube_Thumbnails extends Video_Thumbnails_Providers {
+class Rutube_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Rutube';
@@ -35,13 +35,16 @@ class Rutube_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-		'#(?:https?://)?(?:www\.)?rutube\.ru/video/([A-Za-z0-9]+)#', // Video link
-		'#(?:https?:)?//rutube\.ru/video/embed/([0-9]+)#', // Embed src
+		'#(?:https?://)?(?:www\.)?rutube\.ru/video/(?:embed/)?([A-Za-z0-9]+)#', // Video link/Embed src
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
-		$request = "http://rutube.ru/api/video/$id/?format=json";
+		if ( strlen( $id ) < 32 ) {
+			$request = "http://rutube.ru/api/oembed/?url=http%3A//rutube.ru/tracks/$id.html&format=json";
+		} else {
+			$request = "http://rutube.ru/api/video/$id/?format=json";
+		}
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
@@ -71,8 +74,5 @@ class Rutube_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Rutube_Thumbnails', 'register_provider' ) );
 
 ?>

@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class VK_Thumbnails extends Video_Thumbnails_Providers {
+class Vk_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'VK';
@@ -35,13 +35,15 @@ class VK_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-		'#(//(?:www\.)?vk\.com/video_ext\.php\?oid=\-?[0-9]+&id=\-?[0-9]+&hash=[0-9a-zA-Z]+)#', // URL
+		'#(//(?:www\.)?vk\.com/video_ext\.php\?oid=\-?[0-9]+(?:&|&\#038;|&amp;)id=\-?[0-9]+(?:&|&\#038;|&amp;)hash=[0-9a-zA-Z]+)#', // URL
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
 		$request = "http:$id";
+		$request = html_entity_decode( $request );
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
+		$result = false;
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
@@ -63,17 +65,14 @@ class VK_Thumbnails extends Video_Thumbnails_Providers {
 	public static function get_test_cases() {
 		return array(
 			array(
-				'markup'        => '<iframe src="http://vk.com/video_ext.php?oid=157000410&id=164106383&hash=0fdb5f49218be7c2&hd=1" width="607" height="360" frameborder="0"></iframe>',
-				'expected'      => 'http://cs513416.vk.me/u157000410/video/l_73b292cc.jpg',
-				'expected_hash' => '6d4b086ff1a55c9b48f56bc7848e6c84',
+				'markup'        => '<iframe src="http://vk.com/video_ext.php?oid=220943440&id=168591360&hash=75a37bd3930f4fab&hd=1" width="607" height="360" frameborder="0"></iframe>',
+				'expected'      => 'http://cs540302.vk.me/u220943440/video/l_afc9770f.jpg',
+				'expected_hash' => 'fd8c2af4ad5cd4e55afe129d80b42d8b',
 				'name'          => __( 'iFrame Embed', 'video-thumbnails' )
 			),
 		);
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'VK_Thumbnails', 'register_provider' ) );
 
 ?>

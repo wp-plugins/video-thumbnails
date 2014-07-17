@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Justintv_Thumbnails extends Video_Thumbnails_Providers {
+class Justintv_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Justin.tv';
@@ -35,18 +35,18 @@ class Justintv_Thumbnails extends Video_Thumbnails_Providers {
 
 	// Regex strings
 	public $regexes = array(
-	    '#archive_id=([0-9]+)#' // Archive ID
+	    '#//(?:www\.)?justin\.tv/swflibs/JustinPlayer\.swf\?channel=([a-zA-Z0-9_]+)#' // Channel player
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
-		$request = "http://api.justin.tv/api/clip/show/$id.xml";
+		$request = "http://api.justin.tv/api/channel/show/$id.json";
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
-			$xml = new SimpleXMLElement( $response['body'] );
-			$result = (string) $xml->object->image_url_large;
+			$result = json_decode( $response['body'] );
+			$result = $result->screen_cap_url_huge;
 		}
 		return $result;
 	}
@@ -55,17 +55,14 @@ class Justintv_Thumbnails extends Video_Thumbnails_Providers {
 	public static function get_test_cases() {
 		return array(
 			array(
-				'markup'        => '<object type="application/x-shockwave-flash" height="300" width="400" id="clip_embed_player_flash" data="http://www-cdn.justin.tv/widgets/archive_embed_player.swf" bgcolor="#000000"><param name="movie" value="http://www-cdn.justin.tv/widgets/archive_embed_player.swf" /><param name="allowScriptAccess" value="always" /><param name="allowNetworking" value="all" /><param name="allowFullScreen" value="true" /><param name="flashvars" value="auto_play=false&start_volume=25&title=Title&channel=scamschoolbrian&archive_id=392481524" /></object>',
-				'expected'      => 'http://static-cdn.jtvnw.net/jtv.thumbs/archive-392481524-320x240.jpg',
-				'expected_hash' => '7f260a2ce6ae75a3c2e5012108f161b7',
+				'markup'        => '<object type="application/x-shockwave-flash" data="http://www.justin.tv/swflibs/JustinPlayer.swf?channel=twit" id="live_embed_player_flash" height="300" width="400" bgcolor="#000000"><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always" /><param name="allowNetworking" value="all" /><param name="movie" value="http://www.justin.tv/swflibs/JustinPlayer.swf" /><param name="flashvars" value="hostname=www.justin.tv&channel=twit&auto_play=false&start_volume=25" /></object>',
+				'expected'      => 'http://static-cdn.jtvnw.net/previews/live_user_twit-630x473.jpg',
+				'expected_hash' => 'b8c0dd6565f34e6bfbbddbb07ff0df74',
 				'name'          => __( 'Flash Embed', 'video-thumbnails' )
 			),
 		);
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Justintv_Thumbnails', 'register_provider' ) );
 
 ?>
