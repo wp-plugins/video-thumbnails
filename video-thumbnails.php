@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.10.1
+Version: 2.10.2
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
@@ -30,7 +30,7 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.10.1' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.10.2' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/providers.php' );
@@ -404,7 +404,9 @@ class Video_Thumbnails {
 				// you must first include the image.php file
 				// for the function wp_generate_attachment_metadata() to work
 				require_once( ABSPATH . 'wp-admin/includes/image.php' );
+				do_action( 'video_thumbnails/pre_generate_attachment_metadata', $attach_id, $upload['file'] );
 				$attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
+				do_action( 'video_thumbnails/after_generate_attachment_metadata', $attach_id, $upload['file'] );
 				wp_update_attachment_metadata( $attach_id, $attach_data );
 
 				// Add field to mark image as a video thumbnail
