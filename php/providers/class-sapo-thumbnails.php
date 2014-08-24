@@ -19,14 +19,14 @@
 // Require thumbnail provider class
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
+class Sapo_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
-	public $service_name = 'CollegeHumor';
-	const service_name = 'CollegeHumor';
+	public $service_name = 'SAPO';
+	const service_name = 'SAPO';
 	// Slug for the video provider
-	public $service_slug = 'collegehumor';
-	const service_slug = 'collegehumor';
+	public $service_slug = 'sapo';
+	const service_slug = 'sapo';
 
 	public static function register_provider( $providers ) {
 		$providers[self::service_slug] = new self;
@@ -35,18 +35,26 @@ class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Regex strings
 	public $regexes = array(
-		'#https?://(?:www\.)?collegehumor\.com/(?:video|e)/([0-9]+)#' // URL
+		'#videos\.sapo\.pt/([A-Za-z0-9]+)/mov#', // iFrame SRC
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
-		$request = "http://www.collegehumor.com/oembed.json?url=http%3A%2F%2Fwww.collegehumor.com%2Fvideo%2F$id";
+		$request = "http://videos.sapo.pt/$id";
 		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
-			$result = json_decode( $response['body'] );
-			$result = $result->thumbnail_url;
+			$doc = new DOMDocument();
+			@$doc->loadHTML( $response['body'] );
+			$metas = $doc->getElementsByTagName( 'meta' );
+			for ( $i = 0; $i < $metas->length; $i++ ) {
+				$meta = $metas->item( $i );
+				if ( $meta->getAttribute( 'property' ) == 'og:image' ) {
+					$result = $meta->getAttribute( 'content' );
+					break;
+				}
+			}
 		}
 		return $result;
 	}
@@ -55,16 +63,10 @@ class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
 	public static function get_test_cases() {
 		return array(
 			array(
-				'markup'        => '<iframe src="http://www.collegehumor.com/e/6830834" width="600" height="338" frameborder="0" webkitAllowFullScreen allowFullScreen></iframe><div style="padding:5px 0; text-align:center; width:600px;"><p><a href="http://www.collegehumor.com/videos/most-viewed/this-year">CollegeHumor\'s Favorite Funny Videos</a></p></div>',
-				'expected'      => 'http://2.media.collegehumor.cvcdn.com/62/99/20502ca0d5b2172421002b52f437dcf8-mitt-romney-style-gangnam-style-parody.jpg',
-				'expected_hash' => 'ceac16f6ee1fa5d8707e813226060a15',
+				'markup'        => '<iframe src="http://rd3.videos.sapo.pt/playhtml?file=http://rd3.videos.sapo.pt/ddACsFSuDEZZRWfNHTTy/mov/1" frameborder="0" scrolling="no" width="640" height="360" webkitallowfullscreen mozallowfullscreen allowfullscreen ></iframe>',
+				'expected'      => 'http://cache12.stormap.sapo.pt/vidstore14/thumbnais/74/5f/4c/7038488_tf9s9.jpg',
+				'expected_hash' => '0f95b2d32f3989a5d10d4d249f40b989',
 				'name'          => __( 'iFrame Embed', 'video-thumbnails' )
-			),
-			array(
-				'markup'        => 'http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody',
-				'expected'      => 'http://2.media.collegehumor.cvcdn.com/62/99/20502ca0d5b2172421002b52f437dcf8-mitt-romney-style-gangnam-style-parody.jpg',
-				'expected_hash' => 'ceac16f6ee1fa5d8707e813226060a15',
-				'name'          => __( 'Video URL', 'video-thumbnails' )
 			),
 		);
 	}

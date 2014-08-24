@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Dailymotion_Thumbnails extends Video_Thumbnails_Providers {
+class Dailymotion_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Dailymotion';
@@ -36,7 +36,7 @@ class Dailymotion_Thumbnails extends Video_Thumbnails_Providers {
 	// Regex strings
 	public $regexes = array(
 		'#<object[^>]+>.+?http://www\.dailymotion\.com/swf/video/([A-Za-z0-9]+).+?</object>#s', // Dailymotion flash
-		'#https?://www\.dailymotion\.com/embed/video/([A-Za-z0-9]+)#', // Dailymotion iframe
+		'#//www\.dailymotion\.com/embed/video/([A-Za-z0-9]+)#', // Dailymotion iframe
 		'#(?:https?://)?(?:www\.)?dailymotion\.com/video/([A-Za-z0-9]+)#' // Dailymotion URL
 	);
 
@@ -72,8 +72,5 @@ class Dailymotion_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Dailymotion_Thumbnails', 'register_provider' ) );
 
 ?>
