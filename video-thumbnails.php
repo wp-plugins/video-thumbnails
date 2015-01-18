@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.10.2
+Version: 2.10.3
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
@@ -30,7 +30,7 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.10.2' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.10.3' );
 
 // Providers
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/providers.php' );
@@ -344,7 +344,7 @@ class Video_Thumbnails {
 	public static function save_to_media_library( $image_url, $post_id ) {
 
 		$error = '';
-		$response = wp_remote_get( $image_url, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $image_url );
 		if( is_wp_error( $response ) ) {
 			$error = new WP_Error( 'thumbnail_retrieval', sprintf( __( 'Error retrieving a thumbnail from the URL <a href="%1$s">%1$s</a> using <code>wp_remote_get()</code><br />If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.', 'video-thumbnails' ), $image_url ) . '<br>' . __( 'Error Details:', 'video-thumbnails' ) . ' ' . $response->get_error_message() );
 		} else {
