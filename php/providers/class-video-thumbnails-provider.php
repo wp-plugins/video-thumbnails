@@ -16,7 +16,7 @@
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class Video_Thumbnails_Providers {
+class Video_Thumbnails_Provider {
 
 	public $options = array();
 
@@ -82,6 +82,16 @@ class Video_Thumbnails_Providers {
 	}
 
 	/**
+	 * Drops the parameters from a thumbnail URL
+	 * @param  string $url
+	 * @return string
+	 */
+	static function drop_url_parameters( $url ) {
+		$url = explode( '?', $url );
+		return $url[0];
+	}
+
+	/**
 	 * Constructs a WP_Error object after failed API retrieval
 	 * @param  string   $request  The URL wp_remote_get() failed to retrieve
 	 * @param  WP_Error $response A WP_Error object returned by the failed wp_remote_get()
@@ -100,24 +110,5 @@ class Video_Thumbnails_Providers {
 	// }
 
 }
-
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-youtube-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vimeo-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-facebook-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vine-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-blip-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-justintv-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-dailymotion-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-metacafe-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-vk-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-funnyordie-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-mpora-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-wistia-thumbnails.php' );
-// require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-kaltura-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-youku-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-collegehumor-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-rutube-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-twitch-thumbnails.php' );
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-googledrive-thumbnails.php' );
 
 ?>

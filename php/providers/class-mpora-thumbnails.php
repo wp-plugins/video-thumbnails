@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Mpora_Thumbnails extends Video_Thumbnails_Providers {
+class Mpora_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'MPORA';
@@ -63,8 +63,5 @@ class Mpora_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Mpora_Thumbnails', 'register_provider' ) );
 
 ?>
