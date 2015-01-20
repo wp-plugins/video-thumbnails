@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Vine_Thumbnails extends Video_Thumbnails_Providers {
+class Vine_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Vine';
@@ -41,7 +41,7 @@ class Vine_Thumbnails extends Video_Thumbnails_Providers {
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
 		$request = "https://vine.co/v/$id";
-		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $request );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
@@ -72,8 +72,5 @@ class Vine_Thumbnails extends Video_Thumbnails_Providers {
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Vine_Thumbnails', 'register_provider' ) );
 
 ?>

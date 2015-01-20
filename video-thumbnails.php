@@ -5,7 +5,7 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.6.3
+Version: 2.11
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
@@ -30,13 +30,13 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.6.3' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.11' );
 
 // Providers
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/providers.php' );
 
 // Extensions
-require_once( VIDEO_THUMBNAILS_PATH . '/php/extensions/class-video-thumbnails-extension.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/extensions/extensions.php' );
 
 // Settings
 require_once( VIDEO_THUMBNAILS_PATH . '/php/class-video-thumbnails-settings.php' );
@@ -49,6 +49,9 @@ class Video_Thumbnails {
 	var $settings;
 
 	function __construct() {
+
+		// Load translations
+		add_action( 'plugins_loaded', array( &$this, 'plugin_textdomain' ));
 
 		// Create provider array
 		$this->providers = apply_filters( 'video_thumbnail_providers', $this->providers );
@@ -84,6 +87,13 @@ class Video_Thumbnails {
 		// Get the thumbnail for an individual post
 		add_action('wp_ajax_video_thumbnails_get_thumbnail_for_post', array( &$this, 'get_thumbnail_for_post_callback' ) );
 
+	}
+
+	/**
+	 * Load language files
+	 */
+	function plugin_textdomain() {
+		load_plugin_textdomain( 'video-thumbnails', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 	}
 
 	/**
@@ -272,6 +282,9 @@ class Video_Thumbnails {
 				// Save as Attachment if enabled
 				if ( $this->settings->options['save_media'] == 1 ) {
 					$attachment_id = $this->save_to_media_library( $new_thumbnail, $post_id );
+					if ( is_wp_error( $attachment_id ) ) {
+						return $attachment_id;
+					}
 					$new_thumbnail = wp_get_attachment_image_src( $attachment_id, 'full' );
 					$new_thumbnail = $new_thumbnail[0];
 				}
@@ -331,7 +344,7 @@ class Video_Thumbnails {
 	public static function save_to_media_library( $image_url, $post_id ) {
 
 		$error = '';
-		$response = wp_remote_get( $image_url, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $image_url );
 		if( is_wp_error( $response ) ) {
 			$error = new WP_Error( 'thumbnail_retrieval', sprintf( __( 'Error retrieving a thumbnail from the URL <a href="%1$s">%1$s</a> using <code>wp_remote_get()</code><br />If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.', 'video-thumbnails' ), $image_url ) . '<br>' . __( 'Error Details:', 'video-thumbnails' ) . ' ' . $response->get_error_message() );
 		} else {
@@ -370,22 +383,30 @@ class Video_Thumbnails {
 
 				do_action( 'video_thumbnails/image_downloaded', $upload['file'] );
 
-				$image_url = $upload['url'];
+				$wp_filetype = wp_check_filetype( basename( $upload['file'] ), null );
 
-				$filename = $upload['file'];
+				$upload = apply_filters( 'wp_handle_upload', array(
+					'file' => $upload['file'],
+					'url'  => $upload['url'],
+					'type' => $wp_filetype['type']
+				), 'sideload' );
 
-				$wp_filetype = wp_check_filetype( basename( $filename ), null );
+				// Contstruct the attachment array
 				$attachment = array(
-					'post_mime_type'	=> $wp_filetype['type'],
+					'post_mime_type'	=> $upload['type'],
 					'post_title'		=> get_the_title( $post_id ),
 					'post_content'		=> '',
 					'post_status'		=> 'inherit'
 				);
-				$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+				// Insert the attachment
+				$attach_id = wp_insert_attachment( $attachment, $upload['file'], $post_id );
+
 				// you must first include the image.php file
 				// for the function wp_generate_attachment_metadata() to work
 				require_once( ABSPATH . 'wp-admin/includes/image.php' );
-				$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+				do_action( 'video_thumbnails/pre_generate_attachment_metadata', $attach_id, $upload['file'] );
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
+				do_action( 'video_thumbnails/after_generate_attachment_metadata', $attach_id, $upload['file'] );
 				wp_update_attachment_metadata( $attach_id, $attach_data );
 
 				// Add field to mark image as a video thumbnail
