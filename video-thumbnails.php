@@ -5,12 +5,12 @@ Plugin URI: https://refactored.co/plugins/video-thumbnails
 Description: Automatically retrieve video thumbnails for your posts and display them in your theme. Supports YouTube, Vimeo, Facebook, Vine, Justin.tv, Twitch, Dailymotion, Metacafe, VK, Blip, Google Drive, Funny or Die, CollegeHumor, MPORA, Wistia, Youku, and Rutube.
 Author: Sutherland Boswell
 Author URI: http://sutherlandboswell.com
-Version: 2.6.3
+Version: 2.12.1
 License: GPL2
 Text Domain: video-thumbnails
 Domain Path: /languages/
 */
-/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2015 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -30,13 +30,13 @@ Domain Path: /languages/
 
 define( 'VIDEO_THUMBNAILS_PATH', dirname(__FILE__) );
 define( 'VIDEO_THUMBNAILS_FIELD', '_video_thumbnail' );
-define( 'VIDEO_THUMBNAILS_VERSION', '2.6.3' );
+define( 'VIDEO_THUMBNAILS_VERSION', '2.12.1' );
 
 // Providers
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/providers.php' );
 
 // Extensions
-require_once( VIDEO_THUMBNAILS_PATH . '/php/extensions/class-video-thumbnails-extension.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/extensions/extensions.php' );
 
 // Settings
 require_once( VIDEO_THUMBNAILS_PATH . '/php/class-video-thumbnails-settings.php' );
@@ -49,6 +49,9 @@ class Video_Thumbnails {
 	var $settings;
 
 	function __construct() {
+
+		// Load translations
+		add_action( 'plugins_loaded', array( &$this, 'plugin_textdomain' ));
 
 		// Create provider array
 		$this->providers = apply_filters( 'video_thumbnail_providers', $this->providers );
@@ -87,12 +90,23 @@ class Video_Thumbnails {
 	}
 
 	/**
+	 * Load language files
+	 */
+	function plugin_textdomain() {
+		load_plugin_textdomain( 'video-thumbnails', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	}
+
+	/**
 	 * Adds the admin menu items
 	 */
 	function admin_menu() {
 		add_management_page( __( 'Bulk Video Thumbnails', 'video-thumbnails' ), __( 'Bulk Video Thumbs', 'video-thumbnails' ), 'manage_options', 'video-thumbnails-bulk', array( &$this, 'bulk_scanning_page' ) );
 	}
 
+	/**
+	 * Enqueues necessary admin scripts
+	 * @param  string $hook A hook for the current admin page
+	 */
 	function admin_scripts( $hook ) {
 		// Bulk tool page
 		if ( 'tools_page_video-thumbnails-bulk' == $hook ) {
@@ -117,7 +131,9 @@ class Video_Thumbnails {
 		}
 	}
 
-	// Initialize meta box on edit page
+	/**
+	 * Initialize meta box on edit page
+	 */
 	function meta_box_init() {
 		if ( is_array( $this->settings->options['post_types'] ) ) {
 			foreach ( $this->settings->options['post_types'] as $type ) {
@@ -126,7 +142,9 @@ class Video_Thumbnails {
 		}
 	}
 
-	// Construct the meta box
+	/**
+	 * Renders the video thumbnail meta box
+	 */
 	function meta_box() {
 		global $post;
 		// Add hidden troubleshooting info
@@ -233,7 +251,11 @@ class Video_Thumbnails {
 		return $thumbnail;
 	}
 
-	// The main event
+	/**
+	 * Finds the video thumbnail for a post, saves/sets as featured image if enabled, saves image URL to custom field and then returns the URL
+	 * @param  int   $post_id An optional post ID (can be left blank in a loop)
+	 * @return mixed          A string with an image URL if successful or null if there is no video thumbnail
+	 */
 	function get_video_thumbnail( $post_id = null ) {
 
 		// Get the post ID if none is provided
@@ -272,6 +294,9 @@ class Video_Thumbnails {
 				// Save as Attachment if enabled
 				if ( $this->settings->options['save_media'] == 1 ) {
 					$attachment_id = $this->save_to_media_library( $new_thumbnail, $post_id );
+					if ( is_wp_error( $attachment_id ) ) {
+						return $attachment_id;
+					}
 					$new_thumbnail = wp_get_attachment_image_src( $attachment_id, 'full' );
 					$new_thumbnail = $new_thumbnail[0];
 				}
@@ -327,11 +352,16 @@ class Video_Thumbnails {
 		return $filename;
 	}
 
-	// Saves to media library
+	/**
+	 * Saves a remote image to the media library
+	 * @param  string $image_url URL of the image to save
+	 * @param  int    $post_id   ID of the post to attach image to
+	 * @return int               ID of the attachment
+	 */
 	public static function save_to_media_library( $image_url, $post_id ) {
 
 		$error = '';
-		$response = wp_remote_get( $image_url, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $image_url );
 		if( is_wp_error( $response ) ) {
 			$error = new WP_Error( 'thumbnail_retrieval', sprintf( __( 'Error retrieving a thumbnail from the URL <a href="%1$s">%1$s</a> using <code>wp_remote_get()</code><br />If opening that URL in your web browser returns anything else than an error page, the problem may be related to your web server and might be something your host administrator can solve.', 'video-thumbnails' ), $image_url ) . '<br>' . __( 'Error Details:', 'video-thumbnails' ) . ' ' . $response->get_error_message() );
 		} else {
@@ -370,22 +400,30 @@ class Video_Thumbnails {
 
 				do_action( 'video_thumbnails/image_downloaded', $upload['file'] );
 
-				$image_url = $upload['url'];
+				$wp_filetype = wp_check_filetype( basename( $upload['file'] ), null );
 
-				$filename = $upload['file'];
+				$upload = apply_filters( 'wp_handle_upload', array(
+					'file' => $upload['file'],
+					'url'  => $upload['url'],
+					'type' => $wp_filetype['type']
+				), 'sideload' );
 
-				$wp_filetype = wp_check_filetype( basename( $filename ), null );
+				// Contstruct the attachment array
 				$attachment = array(
-					'post_mime_type'	=> $wp_filetype['type'],
+					'post_mime_type'	=> $upload['type'],
 					'post_title'		=> get_the_title( $post_id ),
 					'post_content'		=> '',
 					'post_status'		=> 'inherit'
 				);
-				$attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+				// Insert the attachment
+				$attach_id = wp_insert_attachment( $attachment, $upload['file'], $post_id );
+
 				// you must first include the image.php file
 				// for the function wp_generate_attachment_metadata() to work
 				require_once( ABSPATH . 'wp-admin/includes/image.php' );
-				$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+				do_action( 'video_thumbnails/pre_generate_attachment_metadata', $attach_id, $upload['file'] );
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
+				do_action( 'video_thumbnails/after_generate_attachment_metadata', $attach_id, $upload['file'] );
 				wp_update_attachment_metadata( $attach_id, $attach_data );
 
 				// Add field to mark image as a video thumbnail
@@ -397,9 +435,11 @@ class Video_Thumbnails {
 
 		return $attach_id;
 
-	} // End of save to media library function
+	}
 
-	// Post editor Ajax reset script
+	/**
+	 * Ajax reset script for post editor
+	 */
 	function ajax_reset_script() {
 		echo '<!-- Video Thumbnails Ajax Search -->' . PHP_EOL;
 		echo '<script type="text/javascript">' . PHP_EOL;
@@ -416,7 +456,9 @@ class Video_Thumbnails {
 		echo '</script>' . PHP_EOL;
 	}
 
-	// Ajax reset callback
+	/**
+	 * Ajax callback for resetting a video thumbnail in the post editor
+	 */
 	function ajax_reset_callback() {
 		global $wpdb; // this is how you get access to the database
 
@@ -437,6 +479,9 @@ class Video_Thumbnails {
 		die();
 	}
 
+	/**
+	 * Ajax callback used to get all the post IDs to be scanned in bulk
+	 */
 	function bulk_posts_query_callback() {
 		// Some default args
 		$args = array(
@@ -455,6 +500,9 @@ class Video_Thumbnails {
 		die();
 	}
 
+	/**
+	 * Ajax callback used to get the video thumbnail for an individual post in the process of running the bulk tool
+	 */
 	function get_thumbnail_for_post_callback() {
 
 		$post_id = $_POST['post_id'];
@@ -483,6 +531,9 @@ class Video_Thumbnails {
 		die();
 	}
 
+	/**
+	 * A function that renders the bulk scanning page
+	 */
 	function bulk_scanning_page() {
 
 		if ( ! current_user_can( 'manage_options' ) ) {

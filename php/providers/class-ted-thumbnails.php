@@ -19,14 +19,14 @@
 // Require thumbnail provider class
 require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
+class Ted_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
-	public $service_name = 'CollegeHumor';
-	const service_name = 'CollegeHumor';
+	public $service_name = 'TED';
+	const service_name = 'TED';
 	// Slug for the video provider
-	public $service_slug = 'collegehumor';
-	const service_slug = 'collegehumor';
+	public $service_slug = 'ted';
+	const service_slug = 'ted';
 
 	public static function register_provider( $providers ) {
 		$providers[self::service_slug] = new self;
@@ -35,18 +35,18 @@ class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Regex strings
 	public $regexes = array(
-		'#https?://(?:www\.)?collegehumor\.com/(?:video|e)/([0-9]+)#' // URL
+		'#//embed(?:\-ssl)?\.ted\.com/talks/(?:lang/[A-Za-z_-]+/)?([A-Za-z0-9_-]+)\.html#', // iFrame SRC
 	);
 
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
-		$request = "http://www.collegehumor.com/oembed.json?url=http%3A%2F%2Fwww.collegehumor.com%2Fvideo%2F$id";
+		$request = "http://www.ted.com/talks/oembed.json?url=http%3A%2F%2Fwww.ted.com%2Ftalks%2F$id";
 		$response = wp_remote_get( $request );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
 			$result = json_decode( $response['body'] );
-			$result = $result->thumbnail_url;
+			$result = str_replace( '240x180.jpg', '480x360.jpg', $result->thumbnail_url );
 		}
 		return $result;
 	}
@@ -55,16 +55,16 @@ class CollegeHumor_Thumbnails extends Video_Thumbnails_Provider {
 	public static function get_test_cases() {
 		return array(
 			array(
-				'markup'        => '<iframe src="http://www.collegehumor.com/e/6830834" width="600" height="338" frameborder="0" webkitAllowFullScreen allowFullScreen></iframe><div style="padding:5px 0; text-align:center; width:600px;"><p><a href="http://www.collegehumor.com/videos/most-viewed/this-year">CollegeHumor\'s Favorite Funny Videos</a></p></div>',
-				'expected'      => 'http://2.media.collegehumor.cvcdn.com/62/99/20502ca0d5b2172421002b52f437dcf8-mitt-romney-style-gangnam-style-parody.jpg',
-				'expected_hash' => 'ceac16f6ee1fa5d8707e813226060a15',
+				'markup'        => '<iframe src="http://embed.ted.com/talks/kitra_cahana_stories_of_the_homeless_and_hidden.html" width="640" height="360" frameborder="0" scrolling="no" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>',
+				'expected'      => 'http://images.ted.com/images/ted/341053090f8bac8c324c75be3114b673b4355e8a_480x360.jpg?lang=en',
+				'expected_hash' => 'f2a5f6af49e841b4f9c7b95d6ca0372a',
 				'name'          => __( 'iFrame Embed', 'video-thumbnails' )
 			),
 			array(
-				'markup'        => 'http://www.collegehumor.com/video/6830834/mitt-romney-style-gangnam-style-parody',
-				'expected'      => 'http://2.media.collegehumor.cvcdn.com/62/99/20502ca0d5b2172421002b52f437dcf8-mitt-romney-style-gangnam-style-parody.jpg',
-				'expected_hash' => 'ceac16f6ee1fa5d8707e813226060a15',
-				'name'          => __( 'Video URL', 'video-thumbnails' )
+				'markup'        => '<iframe src="https://embed-ssl.ted.com/talks/lang/fr-ca/shimpei_takahashi_play_this_game_to_come_up_with_original_ideas.html" width="640" height="360" frameborder="0" scrolling="no" allowfullscreen="allowfullscreen"></iframe>',
+				'expected'      => 'http://images.ted.com/images/ted/b1f1183311cda4df9e1b65f2b363e0b806bff914_480x360.jpg?lang=en',
+				'expected_hash' => 'ff47c99c9eb95e3d6c4b986b18991f22',
+				'name'          => __( 'Custom Language', 'video-thumbnails' )
 			),
 		);
 	}

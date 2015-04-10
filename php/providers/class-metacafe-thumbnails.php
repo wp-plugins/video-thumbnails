@@ -1,6 +1,6 @@
 <?php
 
-/*  Copyright 2013 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
+/*  Copyright 2014 Sutherland Boswell  (email : sutherland.boswell@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as 
@@ -17,9 +17,9 @@
 */
 
 // Require thumbnail provider class
-require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-providers.php' );
+require_once( VIDEO_THUMBNAILS_PATH . '/php/providers/class-video-thumbnails-provider.php' );
 
-class Metacafe_Thumbnails extends Video_Thumbnails_Providers {
+class Metacafe_Thumbnails extends Video_Thumbnails_Provider {
 
 	// Human-readable name of the video provider
 	public $service_name = 'Metacafe';
@@ -41,13 +41,14 @@ class Metacafe_Thumbnails extends Video_Thumbnails_Providers {
 	// Thumbnail URL
 	public function get_thumbnail_url( $id ) {
 		$request = "http://www.metacafe.com/api/item/$id/";
-		$response = wp_remote_get( $request, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $request );
 		if( is_wp_error( $response ) ) {
 			$result = $this->construct_info_retrieval_error( $request, $response );
 		} else {
 			$xml = new SimpleXMLElement( $response['body'] );
 			$result = $xml->xpath( "/rss/channel/item/media:thumbnail/@url" );
 			$result = (string) $result[0]['url'];
+			$result = $this->drop_url_parameters( $result );
 		}
 		return $result;
 	}
@@ -58,15 +59,12 @@ class Metacafe_Thumbnails extends Video_Thumbnails_Providers {
 			array(
 				'markup'        => '<embed flashVars="playerVars=autoPlay=no" src="http://www.metacafe.com/fplayer/8456223/men_in_black_3_trailer_2.swf" width="440" height="248" wmode="transparent" allowFullScreen="true" allowScriptAccess="always" name="Metacafe_8456223" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash"></embed>',
 				'expected'      => 'http://s4.mcstatic.com/thumb/8456223/22479418/4/catalog_item5/0/1/men_in_black_3_trailer_2.jpg',
-				'expected_hash' => 'df46215fef1d9fb68eea64ba3ed9a4fd',
+				'expected_hash' => '977187bfb00df55b39724d7de284f617',
 				'name'          => __( 'Flash Embed', 'video-thumbnails' )
 			),
 		);
 	}
 
 }
-
-// Add to provider array
-add_filter( 'video_thumbnail_providers', array( 'Metacafe_Thumbnails', 'register_provider' ) );
 
 ?>
